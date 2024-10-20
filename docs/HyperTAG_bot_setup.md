@@ -14,7 +14,7 @@ Follow these steps to set up your instance of the HyperTAG bot:
 - After creating your bot, @BotFather will generate an **API key**.
 - Copy this key and paste it into the `TELEGRAM_API_KEY` field in the `config.env` file located in the app's root directory.
 
-- If the `config.env` file doesn’t exist yet, it will be automatically created when you run the script in Step 3 of the Installation section. (See more details [in here](../README.md#installation)).
+- If the `config.env` file doesn’t exist yet, it will be automatically created when you run the command in Step 3 of the Installation section. (See more details [in here](../README.md#installation)).
 
 ## Step 3: Adjust Bot Settings for Groups
 
