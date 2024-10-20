@@ -16,16 +16,16 @@ The bot **analyzes the text content of your messages along with any included lin
 <summary><b>Expand to See More Images:</b></summary>
 
 - Generating Tag from a Text
-  - <p align="center"><img src="/assets/img1.jpg" alt="Generating Tag from a Text" width="60%" height="60%"></p>
+<p align="center"><img src="/assets/img1.jpg" alt="Generating Tag from a Text" width="60%" height="60%"></p>
 
 - Generating Tag and Summary from a Regular Url
-  - <p align="center"><img src="/assets/img2.jpg" alt="Generating Tag and Summary from a Regular Url" width="60%" height="60%"></p>
+<p align="center"><img src="/assets/img2.jpg" alt="Generating Tag and Summary from a Regular Url" width="60%" height="60%"></p>
 
 - Generating Tag and Summary from a YouTube Url
-  - <p align="center"><img src="/assets/img3.jpg" alt="Generating Tag and Summary from a YouTube Url" width="60%" height="60%"></p>
+<p align="center"><img src="/assets/img3.jpg" alt="Generating Tag and Summary from a YouTube Url" width="60%" height="60%"></p>
 
 - Generating Tag and Summary from a YouTube Url (Expanded)
-  - <p align="center"><img src="/assets/img4.jpg" alt="Generating Tag and Summary from a YouTube Url (Expanded)" width="60%" height="60%"></p>
+<p align="center"><img src="/assets/img4.jpg" alt="Generating Tag and Summary from a YouTube Url (Expanded)" width="60%" height="60%"></p>
 
 </details>
 
