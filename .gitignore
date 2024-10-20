@@ -1,0 +1,6 @@
+# Ignore node modules 
+node_modules/
+# Ignore the actual config file, it should be built locally using config.env.example
+config.env
+# Ignore terminal outputs logs
+output.log
