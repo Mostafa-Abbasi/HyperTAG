@@ -23,7 +23,11 @@ import pLimit from "p-limit"; // limiting the number of concurrent requests for 
 
 // to use with googleGeminiSummaryGenerator()
 import axios from "axios";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+} from "@google/generative-ai";
 
 // to use with openAiCompatibleSummaryGenerator()
 import OpenAI from "openai";
@@ -108,6 +112,28 @@ export async function googleGeminiSummaryGenerator(prompt, src) {
             text: `${prompt}`,
           },
         },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_CIVIC_INTEGRITY",
+            threshold: "BLOCK_NONE",
+          },
+        ],
       };
 
       const startTime = performance.now(); // Start timer
@@ -158,6 +184,29 @@ export async function googleGeminiSummaryGenerator(prompt, src) {
 //       // Initialize the Google Generative AI client
 //       const genAI = new GoogleGenerativeAI(randomApiKey);
 
+//       const safetySettings = [
+//         {
+//           category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+//           threshold: HarmBlockThreshold.BLOCK_NONE,
+//         },
+//         {
+//           category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+//           threshold: HarmBlockThreshold.BLOCK_NONE,
+//         },
+//         {
+//           category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+//           threshold: HarmBlockThreshold.BLOCK_NONE,
+//         },
+//         {
+//           category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+//           threshold: HarmBlockThreshold.BLOCK_NONE,
+//         },
+//         {
+//           category: HarmCategory.HARM_CATEGORY_CIVIC_INTEGRITY,
+//           threshold: HarmBlockThreshold.BLOCK_NONE,
+//         },
+//       ];
+
 //       // see the list of available models and their rate limits at https://ai.google.dev/gemini-api/docs/models/gemini
 //       // Current Rate Limits for gemini-1.5-flash model: (as of 2024/09) --- SPOILER: IT'S PRETTY GOOD
 //       // 15 RPM (Requests per minute), 1 million TPM (Tokens per minute) and 1500 RPD (Requests per day)
@@ -167,6 +216,7 @@ export async function googleGeminiSummaryGenerator(prompt, src) {
 //       const model = genAI.getGenerativeModel({
 //         model: selectedModel,
 //         systemInstruction: systemPrompt,
+//         safetySettings: safetySettings,
 //       });
 
 //       const startTime = performance.now(); // Start timer
@@ -226,8 +276,8 @@ export async function openAiCompatibleSummaryGenerator(prompt, src) {
         // see the list of available models at https://openrouter.ai/models
         // Only select Models that are explicitly stated they are free, otherwise you will be charged
 
-        // model: "meta-llama/llama-3.1-8b-instruct:free",
-        model: "meta-llama/llama-3.1-405b-instruct:free",
+        model: "meta-llama/llama-3.1-8b-instruct:free",
+        // model: "meta-llama/llama-3.1-405b-instruct:free",
         // model: "google/gemini-pro-1.5-exp",
         messages: [
           { role: "system", content: systemPrompt }, // Send the system prompt first
@@ -449,6 +499,28 @@ Total Inference Duration   | ${elapsedTime}s
 //           parts: [
 //             {
 //               text: `${prompt}`,
+//             },
+//           ],
+//           safetySettings: [
+//             {
+//               category: "HARM_CATEGORY_HARASSMENT",
+//               threshold: "BLOCK_NONE",
+//             },
+//             {
+//               category: "HARM_CATEGORY_HATE_SPEECH",
+//               threshold: "BLOCK_NONE",
+//             },
+//             {
+//               category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+//               threshold: "BLOCK_NONE",
+//             },
+//             {
+//               category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+//               threshold: "BLOCK_NONE",
+//             },
+//             {
+//               category: "HARM_CATEGORY_CIVIC_INTEGRITY",
+//               threshold: "BLOCK_NONE",
 //             },
 //           ],
 //         },

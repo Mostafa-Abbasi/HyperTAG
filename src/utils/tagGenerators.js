@@ -22,7 +22,7 @@ export async function googleGeminiTagGenerator(prompt) {
     Your output should always be in JSON format.
     Generate a list of the most relevant, trending and popular hashtags related to the topic, keywords, and overall meaning of the provided text.
     Ensure the hashtags follow this JSON schema: {"type": "object", "properties": {"hashtags": {"type": "array", "items": {"type": "string"}}}}.
-    Generate at least 10 hashtags and Return only the hashtags as JSON.`;
+    Generate a minimum of 10 and a maximum of 15 hashtags and Return only the hashtags as JSON.`;
 
     try {
       // See the list of available models and their rate limits at https://ai.google.dev/gemini-api/docs/models/gemini
@@ -69,6 +69,28 @@ export async function googleGeminiTagGenerator(prompt) {
                 text: `${prompt}`,
               },
             ],
+          },
+        ],
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE",
+          },
+          {
+            category: "HARM_CATEGORY_CIVIC_INTEGRITY",
+            threshold: "BLOCK_NONE",
           },
         ],
         generationConfig: {
