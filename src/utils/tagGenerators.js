@@ -2,10 +2,11 @@
 
 import pLimit from "p-limit";
 import axios from "axios";
-import { logMetrics } from "./summaryGenerators.js";
+import applyRetryMechanism from "./retryMechanism.js";
+import randomApiKeySelector from "./randomApiKeySelector.js";
+import logMetrics from "./LLMLogger.js";
 import config from "../config/index.js";
 import logger from "./logger.js";
-import { randomApiKeySelector } from "./randomApiKeySelector.js";
 
 // Define a limit of 2 concurrent operations for Google Gemini
 const googleGeminiLimit = pLimit(2);
@@ -22,15 +23,15 @@ export async function googleGeminiTagGenerator(prompt) {
     Your output should always be in JSON format.
     Generate a list of the most relevant, trending and popular hashtags related to the topic, keywords, and overall meaning of the provided text.
     Ensure the hashtags follow this JSON schema: {"type": "object", "properties": {"hashtags": {"type": "array", "items": {"type": "string"}}}}.
-    Generate a minimum of 10 and a maximum of 15 hashtags and Return only the hashtags as JSON.`;
+    Generate 15 hashtags and Return only the hashtags as JSON.`;
 
     try {
       // See the list of available models and their rate limits at https://ai.google.dev/gemini-api/docs/models/gemini
 
-      // Current Rate Limits for gemini-1.5-flash model: (as of 2024/09) --- SPOILER: IT'S PRETTY GOOD
+      // Current Rate Limits for gemini-1.5-flash model: (as of 2024/09) --- TL;DR: IT'S PRETTY GOOD
       // 1500 RPD (Requests per day), 15 RPM (Requests per minute) and 1 million TPM (Tokens per minute)
 
-      // Current Rate Limits for gemini-1.5-pro model: (as of 2024/09) --- SPOILER: IT'S VERY LOW
+      // Current Rate Limits for gemini-1.5-pro model: (as of 2024/09) --- TL;DR: IT'S VERY LOW
       // 50 RPD (Requests per day), 2 RPM (Requests per minute) and 32,000 TPM (Tokens per minute)
       const selectedModel = "gemini-1.5-flash";
 
@@ -52,6 +53,8 @@ export async function googleGeminiTagGenerator(prompt) {
           "Content-Type": "application/json",
         },
       });
+
+      applyRetryMechanism(geminiInstance);
 
       // Prepare the payload for the request
       const requestData = {
@@ -165,6 +168,8 @@ export async function textRazorTagGenerator(text) {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
+
+      applyRetryMechanism(textRazorInstance);
 
       const startTime = performance.now();
       const response = await textRazorInstance.post(

@@ -20,9 +20,11 @@
 // But because it is self-hosted, performance may not be optimal and is dependant on your hardware configuration, hence we prefere the 1st and 2nd solutions.
 
 import pLimit from "p-limit"; // limiting the number of concurrent requests for openai and gemini
+import randomApiKeySelector from "./randomApiKeySelector.js";
 
 // to use with googleGeminiSummaryGenerator()
 import axios from "axios";
+import applyRetryMechanism from "./retryMechanism.js";
 import {
   GoogleGenerativeAI,
   HarmCategory,
@@ -31,13 +33,14 @@ import {
 
 // to use with openAiCompatibleSummaryGenerator()
 import OpenAI from "openai";
+import { retryWithDelay } from "./retryMechanism.js";
 
 // to use with ollamaSummaryGenerator()
 import ollama from "ollama";
 
+import logMetrics from "./LLMLogger.js";
 import config from "../config/index.js";
 import logger from "./logger.js";
-import { randomApiKeySelector } from "./randomApiKeySelector.js";
 
 // Set the concurrency limit to 2
 const limit = pLimit(2);
@@ -99,6 +102,8 @@ export async function googleGeminiSummaryGenerator(prompt, src) {
           "Content-Type": "application/json",
         },
       });
+
+      applyRetryMechanism(geminiInstance);
 
       // Prepare the payload for the request
       const requestData = {
@@ -249,11 +254,72 @@ export async function googleGeminiSummaryGenerator(prompt, src) {
 // -------------------------------------------------------------------------
 
 // Function to generate a response using OpenAI-Compatible API (We're using OpenRouter in here which has a compatible OpenAI API)
+// export async function openAiCompatibleSummaryGenerator(prompt, src) {
+//   return limit(async () => {
+//     const systemPrompt = getSystemPrompt(src);
+
+//     try {
+//       // Randomly select one API key from the array of keys
+//       const randomApiKey = await randomApiKeySelector(config.openRouter);
+
+//       // Initialize OpenAI client using OpenRouter credentials
+//       const openai = new OpenAI({
+//         apiKey: randomApiKey, // stored in config.env
+//         baseURL: `${
+//           config.proxyOptions.openRouterProxy
+//             ? `${config.proxyOptions.proxyBaseUrl}`
+//             : ``
+//         }${config.openRouter.apiUrl}`,
+//       });
+
+//       const startTime = performance.now(); // Start timer
+
+//       // Create a completion request for the openRouter through OpenAI Library
+//       // Current Rate Limit for free models (as of 2024/09): 200 RPD (Requests per day)
+//       // Only select Models that are explicitly said they are free, otherwise you will be charged
+//       const result = await openai.chat.completions.create({
+//         // see the list of available models at https://openrouter.ai/models
+//         // Only select Models that are explicitly stated they are free, otherwise you will be charged
+
+//         model: "google/gemini-pro-1.5-exp",
+//         // model: "meta-llama/llama-3.1-405b-instruct:free",
+//         // model: "meta-llama/llama-3.1-8b-instruct:free",
+
+//         messages: [
+//           { role: "system", content: systemPrompt }, // Send the system prompt first
+//           { role: "user", content: prompt }, // User input as the content to summarize
+//         ],
+//       });
+
+//       const endTime = performance.now(); // End timer
+
+//       // extracting the response
+//       const fullResponse = result?.choices[0]?.message.content.trim();
+
+//       // Log performance metrics
+//       logMetrics({
+//         method: "online",
+//         model: result.model,
+//         prompt_eval_count: result.usage?.prompt_tokens,
+//         eval_count: result.usage?.completion_tokens,
+//         elapsedTime: ((endTime - startTime) / 1000).toFixed(2),
+//       });
+
+//       return fullResponse;
+//     } catch (error) {
+//       logger.error("Error communicating with OpenAI-Compatible API:", error);
+//       return null;
+//     }
+//   });
+// }
+
+// Function to generate a response using OpenAI-Compatible API with retry (We're using OpenRouter in here which has a compatible OpenAI API)
 export async function openAiCompatibleSummaryGenerator(prompt, src) {
   return limit(async () => {
     const systemPrompt = getSystemPrompt(src);
 
-    try {
+    // Wrap the API call in retryWithDelay
+    return retryWithDelay(async () => {
       // Randomly select one API key from the array of keys
       const randomApiKey = await randomApiKeySelector(config.openRouter);
 
@@ -276,9 +342,10 @@ export async function openAiCompatibleSummaryGenerator(prompt, src) {
         // see the list of available models at https://openrouter.ai/models
         // Only select Models that are explicitly stated they are free, otherwise you will be charged
 
-        model: "meta-llama/llama-3.1-8b-instruct:free",
+        model: "google/gemini-pro-1.5-exp",
         // model: "meta-llama/llama-3.1-405b-instruct:free",
-        // model: "google/gemini-pro-1.5-exp",
+        // model: "meta-llama/llama-3.1-8b-instruct:free",
+
         messages: [
           { role: "system", content: systemPrompt }, // Send the system prompt first
           { role: "user", content: prompt }, // User input as the content to summarize
@@ -286,9 +353,7 @@ export async function openAiCompatibleSummaryGenerator(prompt, src) {
       });
 
       const endTime = performance.now(); // End timer
-
-      // extracting the response
-      const fullResponse = result?.choices[0]?.message.content.trim();
+      const fullResponse = result?.choices[0]?.message.content.trim(); // extracting the response
 
       // Log performance metrics
       logMetrics({
@@ -300,10 +365,7 @@ export async function openAiCompatibleSummaryGenerator(prompt, src) {
       });
 
       return fullResponse;
-    } catch (error) {
-      logger.error("Error communicating with OpenAI-Compatible API:", error);
-      return null;
-    }
+    });
   });
 }
 
@@ -391,75 +453,10 @@ export async function ollamaSummaryGenerator(prompt, src) {
 // -------------------------------------------------------------------------
 // -------------------------------------------------------------------------
 
-// Function to log the metrics in a table format - It is used for all 3 generators,
-// Note that ollama has more metrics to show - these metrics are "N/A" in other 2 generators
-export function logMetrics({
-  method,
-  model,
-  load_duration = null,
-  prompt_eval_count,
-  prompt_eval_duration = null,
-  eval_count,
-  eval_duration = null,
-  elapsedTime,
-}) {
-  // calculating some ollama generator specific metrics - these are not available for other generators and will be replaced with "-"
-  const modelLoadDuration = load_duration
-    ? `${(load_duration / 1e9).toFixed(2)}s`
-    : "-";
-
-  const promptEvaluationTime = prompt_eval_duration
-    ? `${(prompt_eval_duration / 1e9).toFixed(2)}s`
-    : "-";
-
-  const promptEvaluationSpeed = prompt_eval_duration
-    ? `${(prompt_eval_count / (prompt_eval_duration / 1e9)).toFixed(
-        2
-      )} tokens/s`
-    : "-"; // in case of very high values, it is cached from before
-
-  const responseGenerationTime = eval_duration
-    ? `${(eval_duration / 1e9).toFixed(2)}s`
-    : "-";
-
-  const inferenceSpeed = eval_duration
-    ? `${(eval_count / (eval_duration / 1e9)).toFixed(2)} tokens/s`
-    : "-";
-
-  // Estimated processing speed for openAI-Compatible and google generators, it is not accurate and it's here only for insight
-  // It is an average of token/s for both prompt evaluation and token generation + added network latency
-  const commulativeSpeed =
-    method !== "offline"
-      ? `${((prompt_eval_count + eval_count) / elapsedTime).toFixed(
-          2
-        )} tokens/s`
-      : "-";
-
-  // Table-like format for metrics
-  const tableFormat = `
-+--------------------------+-------------------------+
-|          Metric          |           Value         |
-+--------------------------+-------------------------+
-Model Name                 | ${model}                
-Model Load Duration        | ${modelLoadDuration}          
-Total Tokens               | ${prompt_eval_count + eval_count}             
-Prompt Tokens              | ${prompt_eval_count}             
-Prompt Evaluation Time     | ${promptEvaluationTime}
-Prompt Evaluation Speed    | ${promptEvaluationSpeed} 
-Response Tokens            | ${eval_count}             
-Response Generation Time   | ${responseGenerationTime}
-Inference Speed            | ${inferenceSpeed}         
-Commulative Speed (Online) | ${commulativeSpeed}         
-Total Inference Duration   | ${elapsedTime}s          
-`;
-
-  logger.info(tableFormat);
-}
-
-// // deprecated method -- gemini api v1 doesn't support system instructions and doesn't generate high quality summaries because of this, but I think it doesn't hurt to be here
-// // -----------------------------------------------
-// // -----------------------------------------------
-// // Function to generate a summary using Google Gemini -- v1 version that doesn't support system instruction and we will give it system instruction in chat
+// deprecated method -- gemini api v1 doesn't support system instructions and doesn't generate high quality summaries because of this, but I think it doesn't hurt to be here
+// -----------------------------------------------
+// -----------------------------------------------
+// Function to generate a summary using Google Gemini -- v1 version that doesn't support system instruction and we will give it system instruction in chat
 // export async function googleGeminiSummaryGenerator(prompt, src) {
 //   return limit(async () => {
 //     const systemPrompt = getSystemPrompt(src);
@@ -485,6 +482,8 @@ Total Inference Duration   | ${elapsedTime}s
 //           "Content-Type": "application/json",
 //         },
 //       });
+
+//       applyRetryMechanism(geminiInstance);
 
 //       // Prepare the payload for the request
 //       const requestData = {

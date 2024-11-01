@@ -11,6 +11,7 @@ import {
 } from "./youtubeCaptionDownloader.js";
 import { SKIPPED_EXTENSIONS, SKIPPED_HOSTS } from "./blockedResources.js";
 import unshort from "url-unshort";
+import { retryWithDelay } from "./retryMechanism.js";
 import config from "../config/index.js";
 import logger from "../utils/logger.js";
 
@@ -65,20 +66,29 @@ uu.add("ift.tt", {
 // Function to Un-Shorten the URLs with the help of url-unshort library
 // list of supported url-shortener services can be found at https://github.com/nodeca/url-unshort/blob/master/domains.yml
 export async function shortUrlExpander(url) {
-  try {
-    // Use url-unshort to resolve the URL
-    const expandedUrl = await uu.expand(url);
+  return retryWithDelay(async () => {
+    try {
+      // Use url-unshort to resolve the URL
+      const expandedUrl = await uu.expand(url);
 
-    if (expandedUrl) {
-      return expandedUrl;
-    } else {
-      logger.info(`This URL can't be expanded: ${url}`);
-      return url; // Return the original URL if it can't be expanded
+      if (expandedUrl) {
+        return expandedUrl;
+      } else {
+        logger.info(`This URL can't be expanded: ${url}`);
+        return url; // Return the original URL if it can't be expanded
+      }
+    } catch (error) {
+      // Check if error is retryable based on specific substrings in error message
+      const retryableErrors = ["ECONNRESET", "ETIMEDOUT"];
+      if (retryableErrors.some((code) => error.message.includes(code))) {
+        logger.error(`Retryable error occurred: ${error.message}`);
+        throw error; // Rethrow error to trigger retry
+      } else {
+        logger.error(`Non-retryable error occurred: ${error.message}`);
+        return url; // Skip retries and return original URL
+      }
     }
-  } catch (error) {
-    logger.error(`Failed to resolve URL: ${error.message}`);
-    throw error;
-  }
+  });
 }
 
 // Function to check if the URL should be skipped based on its extension (Blocklist: SKIPPED_EXTENSIONS)

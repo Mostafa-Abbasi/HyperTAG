@@ -16,7 +16,7 @@ import logger from "./logger.js";
 // This function is designed to be reusable, allowing for key rotation in any API-related function where rate limits are
 // a concern, ensuring smoother operations, and maximizing the efficiency of available resources.
 
-export async function randomApiKeySelector(apiConfig) {
+export default async function randomApiKeySelector(apiConfig) {
   if (!Array.isArray(apiConfig.tokens) || apiConfig.tokens.length === 0) {
     logger.error("API keys array is empty or not provided.");
     return;

@@ -1,21 +1,22 @@
 {
   "name": "hypertag",
   "version": "1.0.0",
-  "description": "HyperTAG Bot | AI-Generated #Tags and Summaries for Telegram Messages",
-  "homepage": "https://github.com/Mostafa-Abbasi/hypertag#readme",
+  "description": "HyperTAG Bot | AI-Generated Tags and Summaries for Telegram Messages",
+  "homepage": "https://github.com/Mostafa-Abbasi/HyperTAG#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Mostafa-Abbasi/hypertag.git"
+    "url": "https://github.com/Mostafa-Abbasi/HyperTAG.git"
   },
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js"
   },
   "keywords": [
+    "Telegram Bot",
     "Telegram",
-    "bot",
-    "tag",
-    "summary",
+    "Bot",
+    "Tag",
+    "Summary",
     "AI",
     "Gemini",
     "OpenAi",
@@ -23,10 +24,11 @@
     "Ollama",
     "Text Razor",
     "Link Summary",
-    "YouTube Video Summary"
+    "YouTube Video Summary",
+    "YouTube Caption Downloader"
   ],
   "author": "Mostafa Abbasi",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
@@ -36,6 +38,7 @@
     "@mozilla/readability": "^0.5.0",
     "@vitalets/google-translate-api": "^9.2.0",
     "axios": "^1.7.2",
+    "axios-retry": "^4.5.0",
     "canvas": "^2.11.2",
     "chart.js": "^4.4.4",
     "cheerio": "1.0.0-rc.12",

@@ -1,6 +1,7 @@
 // src/services/telegramServices.js
 
 import axios from "axios";
+import applyRetryMechanism from "../utils/retryMechanism.js";
 import pLimit from "p-limit";
 import FormData from "form-data";
 import fs from "fs";
@@ -10,8 +11,8 @@ import logger from "../utils/logger.js";
 // Defining p-limit for controlling concurrency
 const limit = pLimit(10); // 10 concurrent requests
 
-// Instance with rate limiting
-const limitedInstance = axios.create({
+// Define the base configuration for the Axios instances
+const telegramApiBaseConfig = {
   baseURL: `${
     config.proxyOptions.telegramProxy
       ? `${config.proxyOptions.proxyBaseUrl}`
@@ -20,25 +21,20 @@ const limitedInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-});
+};
 
-// Apply p-limit to this limited instance
-limitedInstance.interceptors.request.use(async function (config) {
+// Create a regular instance without rateLimiting/retrying
+const instance = axios.create(telegramApiBaseConfig);
+
+// Create a separate instance for rateLimiting/retrying
+const rateLimitedInstance = axios.create(telegramApiBaseConfig);
+// Apply p-limit to this instance to enable rate limiting
+rateLimitedInstance.interceptors.request.use(async function (config) {
   await limit(() => Promise.resolve());
   return config;
 });
-
-// Instance without rate limiting
-const instance = axios.create({
-  baseURL: `${
-    config.proxyOptions.telegramProxy
-      ? `${config.proxyOptions.proxyBaseUrl}`
-      : ``
-  }${config.telegram.apiUrl}/bot${config.telegram.token}`,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+// Apply retry mechanism to this instance to enable retrying on failed requests
+applyRetryMechanism(rateLimitedInstance);
 
 // sending message in a private chat (communicating to user with bot)
 export async function sendMessage(
@@ -73,7 +69,10 @@ export async function sendMessage(
       messagePayload.reply_to_message_id = messageId;
     }
 
-    const response = await limitedInstance.post(`/sendMessage`, messagePayload);
+    const response = await rateLimitedInstance.post(
+      `/sendMessage`,
+      messagePayload
+    );
 
     const endTime = performance.now();
 
@@ -122,7 +121,7 @@ export async function editMessage(
 
     messagePayload.reply_markup = additionalOptions?.reply_markup || "";
 
-    const response = await limitedInstance.post(
+    const response = await rateLimitedInstance.post(
       `/editMessageText`,
       messagePayload
     );
@@ -151,7 +150,7 @@ export async function editMessage(
 export async function deleteMessage(chatId, messageId) {
   try {
     const startTime = performance.now();
-    const response = await limitedInstance.post("/deleteMessage", {
+    const response = await rateLimitedInstance.post("/deleteMessage", {
       chat_id: chatId,
       message_id: messageId,
     });
@@ -202,7 +201,10 @@ export async function sendPost(post, text) {
       messagePayload.reply_to_message_id = messageId;
     }
 
-    const response = await limitedInstance.post("/sendMessage", messagePayload);
+    const response = await rateLimitedInstance.post(
+      "/sendMessage",
+      messagePayload
+    );
 
     const endTime = performance.now();
 
@@ -233,7 +235,7 @@ export async function editPost(post, updatedText) {
 
   try {
     const startTime = performance.now();
-    const response = await limitedInstance.post(`/editMessageText`, {
+    const response = await rateLimitedInstance.post(`/editMessageText`, {
       chat_id: channelId,
       message_id: messageId,
       text: updatedText,
@@ -268,7 +270,7 @@ export async function editPostCaption(post, updatedCaption) {
 
   try {
     const startTime = performance.now();
-    const response = await limitedInstance.post(`/editMessageCaption`, {
+    const response = await rateLimitedInstance.post(`/editMessageCaption`, {
       chat_id: channelId,
       message_id: messageId,
       caption: updatedCaption,
@@ -334,7 +336,7 @@ export async function sendImage(
     }
 
     // Send the POST request using form-data
-    const response = await limitedInstance.post(`/sendPhoto`, formData, {
+    const response = await rateLimitedInstance.post(`/sendPhoto`, formData, {
       headers: formData.getHeaders(), // Set correct headers for form data
     });
 
@@ -406,9 +408,13 @@ export async function editImage(
     }
 
     // Send the POST request to edit the image using form-data
-    const response = await limitedInstance.post(`/editMessageMedia`, formData, {
-      headers: formData.getHeaders(), // Set correct headers for form data
-    });
+    const response = await rateLimitedInstance.post(
+      `/editMessageMedia`,
+      formData,
+      {
+        headers: formData.getHeaders(), // Set correct headers for form data
+      }
+    );
 
     const endTime = performance.now();
 
@@ -438,7 +444,7 @@ export async function answerCallbackQuery(
   showAlert = false
 ) {
   try {
-    const response = await limitedInstance.post("/answerCallbackQuery", {
+    const response = await rateLimitedInstance.post("/answerCallbackQuery", {
       callback_query_id: callbackQueryId,
       text: text, // Optional message to display
       show_alert: showAlert, // If true, a pop-up alert will be shown instead of a tooltip
@@ -465,7 +471,7 @@ export async function answerCallbackQuery(
 // getting the info of a user in a channel to verify if user has joined sponsor channel
 export async function getChatMember(userId, chatId) {
   try {
-    const response = await limitedInstance.get("/getChatMember", {
+    const response = await rateLimitedInstance.get("/getChatMember", {
       params: { user_id: userId, chat_id: chatId },
     });
     if (response.data.ok) {
@@ -481,22 +487,6 @@ export async function getChatMember(userId, chatId) {
 /////////////////////////////////////////////////////////////////////////////////
 let offset = 0;
 
-// getting latest updates from telegram API
-export async function getUpdates() {
-  try {
-    const response = await instance.get("/getUpdates", {
-      params: { offset },
-    });
-    const updates = response.data.result;
-    if (updates.length > 0) {
-      offset = updates[updates.length - 1].update_id + 1;
-    }
-    return updates;
-  } catch (error) {
-    logger.error("Error fetching updates:", error);
-  }
-}
-
 // getting latest update id, runs only once which is called when the bot server starts
 // we use this so we don't get the entire update history at once,
 // and only get the updates after the latest update id
@@ -511,5 +501,21 @@ export async function getLatestUpdateId() {
     }
   } catch (error) {
     logger.error("Error fetching latest update ID:", error);
+  }
+}
+
+// getting latest updates from telegram API
+export async function getUpdates() {
+  try {
+    const response = await instance.get("/getUpdates", {
+      params: { offset },
+    });
+    const updates = response.data.result;
+    if (updates.length > 0) {
+      offset = updates[updates.length - 1].update_id + 1;
+    }
+    return updates;
+  } catch (error) {
+    logger.error("Error fetching updates:", error);
   }
 }

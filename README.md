@@ -31,7 +31,7 @@ The bot **analyzes the text content of your messages along with any included lin
 
 Interested in trying it out? Click [**Here**](https://telegram.me/HyperTag_bot) to access the bot, or simply search for [**@HyperTAG_bot**](https://telegram.me/HyperTag_bot) on Telegram.
 
-To see HyperTAG's channel integration features in action (automated tag and summary generation for channel posts), check out the [**@Hardware_Reddit**](https://telegram.me/Hardware_Reddit) channel on Telegram.
+To see HyperTAG's channel integration features in action (automated tag and summary generation for channel posts), check out the [**@HW_HUB**](https://telegram.me/HW_HUB) channel on Telegram.
 
 ## Key Features
 

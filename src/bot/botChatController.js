@@ -409,8 +409,8 @@ async function handleCommands(message) {
 <b>2.</b> Enable <b>Sign messages</b> and <b>Show authors' profiles</b> in the channel settings. (You can disable these options after using the commands.)\n\n
 <b>Admin Command:</b>
 - <b>/broadcast</b>: Send a message to all users 📡
-Example: <i>/broadcast Hello users!</i>\n\n
-- <b>/stats</b>: Graph representation of bot statistics 📉
+Example: <i>/broadcast Hello users!</i>
+- <b>/stats</b>: Graph representation of bot statistics 📉\n\n
 <b>Additional Information:</b>
 - <b>Sponsor Channel Membership</b>: Access to the bot's features requires membership in the sponsor channel. The bot will verify your membership before processing any requests.
 - <b>Token Limits</b>: The bot uses a token system to manage usage. Use <b>/tokens</b> to monitor your usage and see when your tokens will reset.\n\n
