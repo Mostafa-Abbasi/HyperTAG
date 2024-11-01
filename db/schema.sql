@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS Users (
     user_name TEXT,
     user_handle TEXT,
     is_vip BOOLEAN DEFAULT FALSE,
-    summary_feature BOOLEAN DEFAULT FALSE,
+    summary_feature BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

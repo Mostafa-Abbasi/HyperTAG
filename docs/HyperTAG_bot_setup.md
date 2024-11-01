@@ -41,7 +41,7 @@ start - Start the Bot 🚀
 help - Learn How to Use the Bot ℹ️
 tokens - Check Your Token Usage 📊
 channels - See Connected Channel(s) 🔗
-summary - Toggle Summary (Default: Off) 📝
+summary - Toggle The Summary Feature 📝
 faq - Explore Frequently Asked Questions ❓
 commands - View All Available Commands 🛠
 languages - List of All Supported Languages 🌐

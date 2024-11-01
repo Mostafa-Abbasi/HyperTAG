@@ -152,7 +152,7 @@ ${config.textPlaceholders.botName} can summarize the <b>First Link</b> in a mess
 📢 <b>Channel Integration</b>
 You can add the bot to your channels, allowing it to generate tags and summaries for your posts automatically.\n\n
 Be sure to check the <b>/faq</b> and <b>/commands</b> sections for more details on how to use the bot.\n
-<b>*</b>Summarization Feature is turned off by default but can be enabled using <b>/summary</b> command.\n
+<b>*</b>Summarization Feature is turned off by default <b>for connected channels</b> but can be enabled using <b>/summary</b> command.\n
 If you have any questions or suggestions, feel free to reach out to the bot's creator at <b>${config.textPlaceholders.supportAccountHandle}</b>. 🙋‍♂️📞
 `;
 
@@ -342,7 +342,7 @@ async function handleSummary(message) {
 
     await sendMessage(
       message,
-      `🛠️ <b>Summary Feature Configuration</b>\n\n<b>Notes:</b>\n- Generating Summary Takes Additional Time.\n- Generated Summaries Are <b>Not</b> Always Correct.\n\n${userSummaryInfo}${channelsSummaryInfo}`,
+      `🛠️ <b>Summary Feature Configuration</b>\n\n<b>Notes:</b>\n- Summary is <b>Off</b> by default for Connected channels.\n- Generating Summary Takes Additional Time.\n- Generated Summaries Are <b>Not</b> Always Correct.\n\n${userSummaryInfo}${channelsSummaryInfo}`,
       {
         reply_markup: { inline_keyboard: inlineKeyboard },
       }
@@ -358,7 +358,7 @@ async function handleFaq(message) {
 <blockquote expandable>- This bot analyzes the text content of normal messages or messages that have caption such as photos and videos to generate relevant <b>English</b> tags.
 It also extracts text from the first <b>${config.botSettings.numberOfUrlsToAnalyze}</b> URLs (even youtube links) in each message and incorporates it into the final tag recommendations.</blockquote>\n
 <b>📝 What else can be done?</b>
-<blockquote expandable>- ${config.textPlaceholders.botName} can also summarize (Enable it via <b>/summary</b>) the <b>first</b> link of your messages. Links may belong to youtube videos or anything else like a blog post.
+<blockquote expandable>- ${config.textPlaceholders.botName} can also summarize the <b>first</b> link of your messages. Links may belong to youtube videos or anything else like a blog post.
 In case of a non-youtube link, ${config.textPlaceholders.botName} tries to get the main content of it and generate a short summary, Othewise if it's a youtube link, captions (if available) will be downloaded and a summary will be generated based of them.
 Don't forget that the main purpose of this bot is to generate tags, so the retrieved text from links will also be used in generating more precise tags, no matter if the summary feature is enabled or not.</blockquote>\n
 <b>🌎 What languages are supported by ${config.textPlaceholders.botName}?</b>
@@ -396,7 +396,7 @@ async function handleCommands(message) {
 - <b>/help</b>: Instructions on how to use the bot ℹ️
 - <b>/tokens</b>: View token usage and reset time 📊
 - <b>/channels</b>: List connected channels 🔗
-- <b>/summary</b>: Toggle Summary feature (Default: Off) 📝
+- <b>/summary</b>: Toggle Summary feature 📝
 - <b>/faq</b>: Frequently Asked Questions ❓
 - <b>/commands</b>: See available commands 🛠️
 - <b>/languages</b>: View Supported Languages 🌎\n\n

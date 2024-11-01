@@ -57,7 +57,7 @@ export async function processHtmlWithReadability(html, url) {
       `The content at URL ${url} is not readerable. ${
         config.botSettings.secondaryContextExtension
           ? "trying with secondary context extender next"
-          : "using secondary context extender is diactivated, enable it in config.env"
+          : "using secondary context extender is deactivated, enable it in config.env"
       }`
     );
     return "";

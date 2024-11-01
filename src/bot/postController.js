@@ -99,7 +99,7 @@ async function handleConnect(post) {
 
         await sendMessage(
           post,
-          `🔗 <b>Channel Connected</b>\n\nChannel ${chat.title} has been successfully connected to your account.`
+          `🔗 <b>Channel Connected</b>\n\nChannel ${chat.title} has been successfully connected to your account.\n\nYou can Enable summary feature for this channel using <b>/summary</b> command.`
         );
       } else {
         await sendMessage(
@@ -184,7 +184,7 @@ async function handleClaim(post) {
       await connectUserToChannel(userId, channelId); // Connect new user
       await sendMessage(
         post,
-        `✅ <b>Channel Claimed</b>\n\nYou have successfully claimed ownership of the channel ${chat.title}. It is now connected to your account.`
+        `✅ <b>Channel Claimed</b>\n\nYou have successfully claimed ownership of the channel ${chat.title}, It is now connected to your account.\n\nYou can Enable summary feature for this channel using <b>/summary</b> command.`
       );
     } else {
       await sendMessage(
