@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS Channels (
     channel_name TEXT NOT NULL,
     channel_handle TEXT,
     summary_feature BOOLEAN DEFAULT FALSE,
+    bot_signature BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

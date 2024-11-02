@@ -131,10 +131,11 @@ Post in channel ${channelName} [${channelLink}${messageId}] is too long. Please 
   // generating tags array using the selected API (Default: Gemini)
   let tags = await tagGenerator(text, urlContents);
 
+  const channelDetails = await getChannelDetailsByChannelId(channelId); // used to extract summary_feature & bot_signature values
+
   let summary = "";
   let summaryGenerationStatus = true;
   const summaryGenerationFailureMessage = `⚠️ <b>Summary Generation Failed</b>\n\nSomething went wrong while Generating the Summary, please send your message again.\n\n`;
-  const channelDetails = await getChannelDetailsByChannelId(channelId);
   // 1. First check if the summary_feature is enbaled for the channel by the user
   // 2. Check if there is any text content retrieved at all from the first URL
   // (Using youtube caption downloader or primary context extender or secondary context extender)
@@ -172,11 +173,13 @@ Post in channel ${channelName} [${channelLink}${messageId}] is too long. Please 
     const formattedText = await formatTextWithEntities(text, entities);
 
     // Prepare the updated text or caption
-    let updatedText = `${formattedText}\n${
-      summary ? summary : ""
-    }${tags}\n<b>Powered By <a href="${config.textPlaceholders.botLink}">${
-      config.textPlaceholders.botName
-    }</a></b> 🤖`;
+    let updatedText = `
+${formattedText}\n${summary ? summary : ""}${tags}
+${
+  channelDetails?.bot_signature
+    ? `${`<b>Powered By <a href="${config.textPlaceholders.botLink}">${config.textPlaceholders.botName}</a></b> 🤖`}`
+    : ""
+}`;
 
     let ok;
     if (
@@ -216,7 +219,13 @@ Post in channel ${channelName} [${channelLink}${messageId}] is too long. Please 
       (post.text && updatedText.length > 4096)
     ) {
       // removing the generated summary (if it was generated at all) from the updated text to avoid hitting the message character limit
-      updatedText = `${formattedText}\n${tags}\n<b>Powered By <a href="${config.textPlaceholders.botLink}">${config.textPlaceholders.botName}</a></b> 🤖`;
+      updatedText = `
+${formattedText}\n${tags}
+${
+  channelDetails?.bot_signature
+    ? `${`<b>Powered By <a href="${config.textPlaceholders.botLink}">${config.textPlaceholders.botName}</a></b> 🤖`}`
+    : ""
+}`;
 
       if (post.caption) {
         ok = await editPostCaption(post, updatedText); // Editing caption without summary

@@ -286,6 +286,7 @@ async function getUserChannels(userId) {
         Channels.channel_name, 
         Channels.channel_handle, 
         Channels.summary_feature,
+        Channels.bot_signature,
         Channels.created_at 
       FROM 
         UserChannels 
@@ -367,7 +368,7 @@ async function getChannelDetailsByChannelId(channelId) {
   try {
     // Fetch channel details from the Channels table
     const channelDetailsRow = await db.getAsync(
-      "SELECT channel_id, channel_name, channel_handle, summary_feature, created_at FROM Channels WHERE channel_id = ?",
+      "SELECT channel_id, channel_name, channel_handle, summary_feature, bot_signature, created_at FROM Channels WHERE channel_id = ?",
       [channelId]
     );
 
@@ -592,6 +593,40 @@ async function toggleSummaryFeatureForChannel(channelId) {
   } catch (err) {
     logger.error(
       `Error toggling summary feature for channel ${channelId}:`,
+      err
+    );
+  }
+}
+
+async function toggleBotSignatureForChannel(channelId) {
+  try {
+    // Get the current value of the signature status
+    const channel = await db.getAsync(
+      "SELECT bot_signature FROM Channels WHERE channel_id = ?",
+      [channelId]
+    );
+
+    if (!channel) {
+      throw new Error(`Channel with ID ${channelId} not found.`);
+    }
+
+    // Toggle the signature status value
+    const newBotSignature = !channel.bot_signature;
+
+    // Update the signature status in the database
+    await db.runAsync(
+      "UPDATE Channels SET bot_signature = ? WHERE channel_id = ?",
+      [newBotSignature, channelId]
+    );
+
+    logger.info(
+      `Channel ${channelId} bot signature status updated to ${newBotSignature}.`
+    );
+
+    return newBotSignature;
+  } catch (err) {
+    logger.error(
+      `Error toggling signature status for channel ${channelId}:`,
       err
     );
   }
@@ -1111,6 +1146,7 @@ export {
   updateVipStatusForAllUsers,
   toggleSummaryFeatureForUser,
   toggleSummaryFeatureForChannel,
+  toggleBotSignatureForChannel,
   registeredUsersCountWithinDateRange,
   activeUsersCountWithinDateRange,
   newUsersCountWithinDateRange,

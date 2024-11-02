@@ -11,6 +11,7 @@ import {
   getUserChannels,
   toggleSummaryFeatureForUser,
   toggleSummaryFeatureForChannel,
+  toggleBotSignatureForChannel,
   getBotStartDate,
   toggleMetricDisplayById,
 } from "../../db/database.js";
@@ -40,6 +41,10 @@ export async function handleCallbackQuery(callbackQuery) {
     switch (command) {
       case "/summary":
         await handleSummaryCallback(message, data);
+        break;
+
+      case "/signature":
+        await handleSignatureCallback(message, data);
         break;
 
       case "/stats":
@@ -139,6 +144,70 @@ async function handleSummaryCallback(message, data) {
     await sendMessage(
       message,
       `⚠️ <b>Error</b>\n\nFailed to update summary status.`
+    );
+  }
+}
+
+// Handles callback for toggling Bot Signature on/off
+async function handleSignatureCallback(message, data) {
+  const channelId = data.split(" ")[1]; // Extracting the Channel ID
+
+  try {
+    await toggleBotSignatureForChannel(channelId);
+
+    const userChannels = await getUserChannels(message.chat.id);
+
+    const userId = message.chat.id;
+    // Only allow vip users to use the signature command
+    if (!config.vipUserIds.includes(userId)) {
+      await sendMessage(
+        message,
+        `⛔️ <b>Access Denied</b>\n\nYou are not authorized to use this command.`
+      );
+      return;
+    }
+
+    // Variable to store channel-specific signature info
+    let channelsSignatureInfo = "";
+    // Variable to store inline keyboard buttons for enabling/disabling singature
+    const inlineKeyboard = [];
+
+    // Loop through each channel to build the channel(s) text and buttons
+    for (const channel of userChannels) {
+      const { channel_id, channel_name, bot_signature } = channel;
+
+      const currentState = bot_signature == true ? "✅" : "❌";
+      const nextState = bot_signature == true ? "❌ Disable" : "✅ Enable";
+
+      // Add the channel bot_signature info to the string with styling
+      channelsSignatureInfo += `
+  📢 <b>Channel</b>: ${channel_name}
+  📝 <b>- Signature Status</b>: ${currentState}\n`;
+
+      // Add button for each channel to enable/disable signature
+      inlineKeyboard.push([
+        {
+          text: `${nextState} for 📢 ${channel_name}`,
+          callback_data: `/signature ${channel_id}`,
+        },
+      ]);
+    }
+
+    await editMessage(
+      message,
+      `🛠️ <b>Bot Signature Configuration</b>\n\n${channelsSignatureInfo}`,
+      {
+        reply_markup: { inline_keyboard: inlineKeyboard },
+      }
+    );
+  } catch (error) {
+    logger.error(
+      `Error updating signature status for Channel ID ${channelId}:`,
+      error
+    );
+    await sendMessage(
+      message,
+      `⚠️ <b>Error</b>\n\nFailed to update signature status.`
     );
   }
 }

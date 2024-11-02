@@ -30,6 +30,7 @@ const validCommands = [
   "/tokens",
   "/channels",
   "/summary",
+  "/signature",
   "/faq",
   "/commands",
   "/languages",
@@ -81,6 +82,10 @@ export async function handleMessage(message) {
 
       case "/summary":
         await handleSummary(message, messageText);
+        break;
+
+      case "/signature":
+        await handleSignature(message);
         break;
 
       case "/faq":
@@ -147,8 +152,8 @@ ${config.textPlaceholders.botName} analyzes the text content of your messages to
 If your message contains Links, the bot extracts their main content (up to the first ${config.botSettings.numberOfUrlsToAnalyze} URLs) and considers it into the tag recommendation.\n
 🎥 <b>Youtube Analysis</b>
 ${config.textPlaceholders.botName} retrieves captions from YouTube videos Links' (up to the first ${config.botSettings.numberOfUrlsToAnalyze} URLs) and also consider it for tag recommendation.\n
-📝 <b>Summarization</b>
-${config.textPlaceholders.botName} can summarize the <b>First Link</b> in a message (Regular Link or Youtube Link), providing a concise version of the content in the form of Expandable Summaries.*\n
+📝 <b>Summarization*</b>
+${config.textPlaceholders.botName} can summarize the <b>First Link</b> in a message (Regular Link or Youtube Link), providing a concise version of the content in the form of Expandable Summaries.\n
 📢 <b>Channel Integration</b>
 You can add the bot to your channels, allowing it to generate tags and summaries for your posts automatically.\n\n
 Be sure to check the <b>/faq</b> and <b>/commands</b> sections for more details on how to use the bot.\n
@@ -350,6 +355,57 @@ async function handleSummary(message) {
   }
 }
 
+// Handles the /signature command
+async function handleSignature(message) {
+  if (await verifySponsorChannelMembershipForBot(message)) {
+    const userChannels = await getUserChannels(message.chat.id);
+
+    const userId = message.chat.id;
+    // Only allow vip users to use the signature command
+    if (!config.vipUserIds.includes(userId)) {
+      await sendMessage(
+        message,
+        `⛔️ <b>Access Denied</b>\n\nYou are not authorized to use this command.`
+      );
+      return;
+    }
+
+    // Variable to store channel-specific signature info
+    let channelsSignatureInfo = "";
+    // Variable to store inline keyboard buttons for enabling/disabling singature
+    const inlineKeyboard = [];
+
+    // Loop through each channel to build the channel(s) text and buttons
+    for (const channel of userChannels) {
+      const { channel_id, channel_name, bot_signature } = channel;
+
+      const currentState = bot_signature == true ? "✅" : "❌";
+      const nextState = bot_signature == true ? "❌ Disable" : "✅ Enable";
+
+      // Add the channel bot_signature info to the string with styling
+      channelsSignatureInfo += `
+📢 <b>Channel</b>: ${channel_name}
+📝 <b>- Signature Status</b>: ${currentState}\n`;
+
+      // Add button for each channel to enable/disable signature
+      inlineKeyboard.push([
+        {
+          text: `${nextState} for 📢 ${channel_name}`,
+          callback_data: `/signature ${channel_id}`,
+        },
+      ]);
+    }
+
+    await sendMessage(
+      message,
+      `🛠️ <b>Bot Signature Configuration</b>\n\n${channelsSignatureInfo}`,
+      {
+        reply_markup: { inline_keyboard: inlineKeyboard },
+      }
+    );
+  }
+}
+
 // Handles the /faq command
 async function handleFaq(message) {
   const faqMessage = `
@@ -396,24 +452,27 @@ async function handleCommands(message) {
 - <b>/help</b>: Instructions on how to use the bot ℹ️
 - <b>/tokens</b>: View token usage and reset time 📊
 - <b>/channels</b>: List connected channels 🔗
-- <b>/summary</b>: Toggle Summary feature 📝
+- <b>/summary</b>: Toggle summary feature on/off 📝
 - <b>/faq</b>: Frequently Asked Questions ❓
 - <b>/commands</b>: See available commands 🛠️
-- <b>/languages</b>: View Supported Languages 🌎\n\n
+- <b>/languages</b>: View Supported Languages 🌎\n
 <b>Channel Commands:*</b>
 - <b>/connect</b>: Connect the bot to a channel 🚀
 - <b>/disconnect</b>: Disconnect the bot from a channel 🔌
 - <b>/claim</b>: Transfer channel ownership to your account 👑\n
 <b>*</b>To use these commands in a channel, follow these steps first:
 <b>1.</b> Add the bot as an admin in your channel.
-<b>2.</b> Enable <b>Sign messages</b> and <b>Show authors' profiles</b> in the channel settings. (You can disable these options after using the commands.)\n\n
-<b>Admin Command:</b>
+<b>2.</b> Enable <b>Sign messages</b> and <b>Show authors' profiles</b> in the channel settings. (You can disable these options after using the commands.)\n
+<b>VIP Command:</b>
+- <b>/signature</b>: Toggle signature* on/off in channel posts 🛠️
+<b>*</b>Current signature: <i>"Powered by ${config.textPlaceholders.botName}"</i>\n
+<b>Admin Commands:</b>
 - <b>/broadcast</b>: Send a message to all users 📡
 Example: <i>/broadcast Hello users!</i>
-- <b>/stats</b>: Graph representation of bot statistics 📉\n\n
+- <b>/stats</b>: Graph representation of bot statistics 📉\n
 <b>Additional Information:</b>
 - <b>Sponsor Channel Membership</b>: Access to the bot's features requires membership in the sponsor channel. The bot will verify your membership before processing any requests.
-- <b>Token Limits</b>: The bot uses a token system to manage usage. Use <b>/tokens</b> to monitor your usage and see when your tokens will reset.\n\n
+- <b>Token Limits</b>: The bot uses a token system to manage usage. Use <b>/tokens</b> to monitor your usage and see when your tokens will reset.\n
 If you need more help, feel free to reach out to bot's creator (<b>${config.textPlaceholders.supportAccountHandle}</b>) or refer to the <b>/help</b> and <b>/faq</b> sections. 🙋‍♂️📞
 `;
   await sendMessage(message, commandsMessage);

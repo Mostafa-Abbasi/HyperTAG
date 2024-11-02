@@ -72,8 +72,9 @@ You have used all your tokens for now. Please click on <b>/tokens</b> to view yo
   // generating tags array using the selected API (Default: Gemini)
   let tags = await tagGenerator(text, urlContents);
 
-  let summary = "";
   const userDetails = await getUserDetailsByUserId(chatId);
+
+  let summary = "";
   // 1. First check if the summary_feature is enbaled for the chat by the user
   // 2. Check if there is any text content retrieved at all from the first URL
   // (using youtube caption downloader or primary context extender or secondary context extender)
