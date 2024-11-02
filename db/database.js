@@ -2,6 +2,7 @@
 
 import { promisify } from "util";
 import initializeDatabase from "./init.js";
+import applyMigrations from "./migrationManager.js";
 import initializeTablesWithDefaultValues from "./initialData.js";
 import config from "../src/config/index.js";
 import logger from "../src/utils/logger.js";
@@ -14,15 +15,18 @@ const initializeDb = async () => {
   return new Promise((resolve, reject) => {
     initializeDatabase(async (database) => {
       db = database;
-      // Promisify db.get and db.run
+      // Promisify db operations
       db.getAsync = promisify(db.get).bind(db);
       db.runAsync = promisify(db.run).bind(db);
       db.allAsync = promisify(db.all).bind(db);
+      db.execAsync = promisify(db.exec).bind(db);
 
       try {
+        await applyMigrations(db); // Run the migrations based on db version
         await initializeTables();
         resolve();
       } catch (err) {
+        logger.error("Database initialization failed:", err);
         reject(err);
       }
     });

@@ -1,3 +1,4 @@
+-- version: 1
 -- db/schema.sql
 
 -- Users table
@@ -72,4 +73,10 @@ CREATE TABLE IF NOT EXISTS ApiCalls (
     api_call_id INTEGER PRIMARY KEY,
     api_name TEXT NOT NULL, -- e.g., 'gemini', 'textrazor', 'openrouter'
     performed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- The time the API call was made
+);
+
+-- Table to store the schema version (for database migration)
+CREATE TABLE IF NOT EXISTS SchemaVersion (
+  version INTEGER PRIMARY KEY,
+  applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
