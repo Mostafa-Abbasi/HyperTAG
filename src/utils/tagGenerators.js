@@ -103,35 +103,54 @@ export async function googleGeminiTagGenerator(prompt) {
 
       const startTime = performance.now(); // Start timer
 
-      // Send a POST request using axios instance
-      const response = await geminiInstance.post("", requestData);
+      // Retry logic for JSON parsing
+      let parsedResponse, cleanedTags;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          // Send a POST request using axios instance
+          const response = await geminiInstance.post("", requestData);
 
-      const endTime = performance.now(); // End timer
+          const endTime = performance.now(); // End timer
+          console.log(response.data.candidates[0].content.parts[0].text);
 
-      console.log(response.data.candidates[0].content.parts[0].text);
+          // Extracting the response text (assumed to be a valid JSON string)
+          const fullResponse =
+            response.data.candidates[0].content.parts[0].text;
 
-      // Extracting the response text (assumed to be a valid JSON string)
-      const fullResponse = response.data.candidates[0].content.parts[0].text;
+          // Remove any extra whitespace and parse the JSON string
+          parsedResponse = JSON.parse(fullResponse.trim());
 
-      // Remove any extra whitespace and parse the JSON string
-      const parsedResponse = JSON.parse(fullResponse.trim());
+          // Check if the parsed response contains a valid hashtags array
+          if (!Array.isArray(parsedResponse.hashtags)) {
+            throw new Error(
+              "Parsed response does not contain a valid hashtags array."
+            );
+          }
 
-      // Extract the array of hashtags
-      let hashtagsArray = parsedResponse.hashtags;
+          // Extract the array of hashtags and clean/filter them
+          const hashtagsArray = parsedResponse.hashtags;
+          cleanedTags = cleanAndFilterTags(hashtagsArray);
 
-      // Clean and filter the generated hashtags
-      const cleanedTags = cleanAndFilterTags(hashtagsArray);
+          logMetrics({
+            method: "online",
+            model: selectedModel,
+            prompt_eval_count: response.data.usageMetadata.promptTokenCount,
+            eval_count: response.data.usageMetadata.candidatesTokenCount,
+            elapsedTime: ((endTime - startTime) / 1000).toFixed(2),
+          });
 
-      console.log(cleanedTags);
-
-      // Log performance metrics
-      logMetrics({
-        method: "online",
-        model: selectedModel,
-        prompt_eval_count: response.data.usageMetadata.promptTokenCount,
-        eval_count: response.data.usageMetadata.candidatesTokenCount,
-        elapsedTime: ((endTime - startTime) / 1000).toFixed(2),
-      });
+          break; // Exit loop if parsing was successful
+        } catch (parseError) {
+          logger.error(
+            `Attempt ${attempt + 1}: Error parsing JSON response, retrying...`
+          );
+          if (attempt === 2) {
+            throw new Error(
+              "Failed to parse JSON response after multiple attempts."
+            );
+          }
+        }
+      }
 
       return cleanedTags;
     } catch (error) {
@@ -226,10 +245,10 @@ function cleanAndFilterTags(tags) {
     return cleanedTag;
   }
 
-  // Clean the tags and filter out tags longer than 30 characters
+  // Clean the tags and filter out (tags longer than 30 characters && numeric-only hashtags)
   const cleanedTags = tags
     .map((tag) => `#${cleanTags(tag)}`) // Add # if not present and clean the tags
-    .filter((tag) => tag.length <= 30); // Filter out any tags longer than 30 characters
+    .filter((tag) => tag.length <= 30 && !/^#\d+$/.test(tag)); // Filter out numeric-only hashtags
 
   return cleanedTags;
 }
