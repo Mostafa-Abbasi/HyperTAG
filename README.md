@@ -1,4 +1,9 @@
-<p align="center"><img src="/assets/HyperTag_Logo.svg" width="350" height="350"></p>
+[![Release](https://img.shields.io/github/v/release/Mostafa-Abbasi/HyperTAG?style=flat-square&label=Release)](https://github.com/Mostafa-Abbasi/HyperTAG/releases)
+[![Bot Link](https://img.shields.io/badge/Bot-Telegram-blue.svg?logo=telegram)](https://t.me/HyperTAG_bot)
+[![Bot Link](https://img.shields.io/badge/Channel-Telegram-blue.svg?logo=telegram)](https://t.me/Falken_Devlog)
+[![License](https://img.shields.io/github/license/Mostafa-Abbasi/HyperTAG?style=flat-square&label=License)](https://github.com/Mostafa-Abbasi/HyperTAG/blob/main/LICENSE)
+
+<p align="center"><img src="/assets/HyperTag_Logo.svg" width="250" height="250"></p>
 
 # <p align="center"><b>#️⃣HyperTAG Telegram Bot</b></p> <p align="center"><b>AI-Generated Tags and Summaries for Telegram Messages</b></p>
 
@@ -8,12 +13,12 @@
 
 The bot **analyzes the text content of your messages along with any included links**, producing **relevant tags and summaries** based on both the message text and the text from the links. Additionally, it generates summaries for **Web pages** or **YouTube videos** using their links.
 
-**Usage Example**: (with Summary Feature Turned On)
+**Usage Example**: (more examples below)
 
 <p align="center"><img src="/assets/img0.jpg" alt="Generating Tag and Summary from a YouTube Url"  width="60%" height="60%"></p>
 
 <details>
-<summary><b>Expand to See More Images:</b></summary>
+<summary><b>Expand to See More Usage Examples:</b></summary>
 
 - Generating Tag from a Text
 <p align="center"><img src="/assets/img1.jpg" alt="Generating Tag from a Text" width="60%" height="60%"></p>
@@ -32,6 +37,8 @@ The bot **analyzes the text content of your messages along with any included lin
 Interested in trying it out? Click [**Here**](https://telegram.me/HyperTag_bot) to access the bot, or simply search for [**@HyperTAG_bot**](https://telegram.me/HyperTag_bot) on Telegram.
 
 To see HyperTAG's channel integration features in action (automated tag and summary generation for channel posts), check out the [**@HW_HUB**](https://telegram.me/HW_HUB) channel on Telegram.
+
+Join my [**Devlog**](https://telegram.me/Falken_Devlog) channel on Telegram for updates and announcements about HyperTAG and other projects.
 
 ## Key Features
 
