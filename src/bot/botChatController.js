@@ -58,7 +58,7 @@ export async function handleMessage(message) {
       // Unknown command
       await sendMessage(
         message,
-        `⚠️ <b>Unknown Command</b>\n\nThe command <b>${command}</b> is not recognized. Please use <b>/help</b> to see the list of available commands.`
+        `⚠️ <b>Unknown Command</b>\n\nThe command <b>${command}</b> is not recognized. Please use <b>/commands</b> to see the list of available commands.`
       );
       return;
     }
@@ -462,10 +462,10 @@ async function handleCommands(message) {
 - <b>/claim</b>: Transfer channel ownership to your account 👑\n
 <b>*</b>To use these commands in a channel, follow these steps first:
 <b>1.</b> Add the bot as an admin in your channel.
-<b>2.</b> Enable <b>Sign messages</b> and <b>Show authors' profiles</b> in the channel settings. (You can disable these options after using the commands.)\n
+<b>2.</b> Enable <b>Sign messages</b> and <b>Show authors' profiles</b> in the channel settings. (You only need these options enabled while using the above commands in a channel, so you can disable them after e.g. adding the bot to the channel by /connect command)\n
 <b>VIP Command:</b>
 - <b>/signature</b>: Toggle signature* on/off in channel posts 🛠️
-<b>*</b>Current signature: <i>"Powered by ${config.textPlaceholders.botName}"</i>\n
+<b>*</b>Current signature: <i>"${config.textPlaceholders.botSignature}"</i>\n
 <b>Admin Commands:</b>
 - <b>/broadcast</b>: Send a message to all users 📡
 Example: <i>/broadcast Hello users!</i>

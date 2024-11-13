@@ -174,12 +174,11 @@ Post in channel ${channelName} [${channelLink}${messageId}] is too long. Please 
 
     // Prepare the updated text or caption
     let updatedText = `
-${formattedText}\n${summary ? summary : ""}${tags}
-${
-  channelDetails?.bot_signature
-    ? `${`<b>Powered By <a href="${config.textPlaceholders.botLink}">${config.textPlaceholders.botName}</a></b> 🤖`}`
-    : ""
-}`;
+${formattedText}\n${summary ? summary : ""}${tags} ${
+      channelDetails?.bot_signature
+        ? `${`${config.textPlaceholders.botSignature}`}`
+        : ""
+    }`;
 
     let ok;
     if (
@@ -220,12 +219,11 @@ ${
     ) {
       // removing the generated summary (if it was generated at all) from the updated text to avoid hitting the message character limit
       updatedText = `
-${formattedText}\n${tags}
-${
-  channelDetails?.bot_signature
-    ? `${`<b>Powered By <a href="${config.textPlaceholders.botLink}">${config.textPlaceholders.botName}</a></b> 🤖`}`
-    : ""
-}`;
+${formattedText}\n${tags} ${
+        channelDetails?.bot_signature
+          ? `${`${config.textPlaceholders.botSignature}`}`
+          : ""
+      }`;
 
       if (post.caption) {
         ok = await editPostCaption(post, updatedText); // Editing caption without summary

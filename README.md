@@ -192,6 +192,7 @@ This file contains a variety of customizable options that can significantly enha
 - `BOT_NAME`: Name of the bot (e.g., `HyperTAG`).
 - `BOT_HANDLE`: Telegram handle of the bot (e.g., `@HyperTag_bot`).
 - `BOT_LINK`: Direct link to the bot (e.g., `t.me/HyperTag_bot`).
+- `BOT_SIGNATURE`: Text that will be shown at the end of messages edited by HyperTAG in channels (e.g., `@HyprTAG`)
 
 ### Sponsor Channel Configuration
 

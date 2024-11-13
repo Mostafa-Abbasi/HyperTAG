@@ -255,8 +255,6 @@ export async function processGraphStatsRequest(
         openRouterApiCallsCount,
       ] = await retrieveMetricsCountsInRange(intervalStart, intervalEnd);
 
-      console.log(`${intervalStart} ${intervalEnd}`);
-
       // Push all data into their corresponding arrays
       dataPoints.registeredUsers.push(registeredUsersCount);
       dataPoints.activeUsers.push(activeUsersCount);
