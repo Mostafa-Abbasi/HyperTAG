@@ -3,12 +3,16 @@
 import fs from "fs";
 import config from "../config/index.js";
 
+const getTime = () => new Date().toLocaleString();
+
 const logger = {
   info: (message) => {
-    console.log(`[INFO] ${message}`);
+    const time = getTime();
+    console.log(`[INFO - ${time}] ${message}`);
   },
   error: (message, error = "") => {
-    console.error(`[ERROR] ${message}`, error);
+    const time = getTime();
+    console.error(`[ERROR - ${time}] ${message}`, error);
   },
 };
 
