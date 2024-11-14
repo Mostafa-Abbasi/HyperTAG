@@ -12,6 +12,8 @@ import {
   getMetricsDisplayState,
   getBotStartDate,
   apiCallsCountWithinDateRange,
+  inactiveUsersCount,
+  inactiveChannelsCount,
 } from "../../db/database.js";
 import { sendMessage } from "../services/telegramServices.js";
 import { createCanvas } from "canvas";
@@ -44,20 +46,24 @@ export function createStatsSummaryMessage(counts, period, startDate) {
 
   const stats = `<b>📅 Period: ${label}</b>
 
-1. Registered Users: ${counts[0]}
-2. Active Users: ${counts[1]}
-3. New Users: ${counts[2]}
+1. Registered Users: ${counts[0]} (Reachable ${
+    counts[0] - counts[1]
+  } | Unreachable ${counts[1]})
+2. Active Users: ${counts[2]}
+3. New Users: ${counts[3]}
 
-4. Registered Channels: ${counts[3]}
-5. Active Channels: ${counts[4]}
-6. New Channels: ${counts[5]}
+4. Registered Channels: ${counts[4]} (Reachable ${
+    counts[4] - counts[5]
+  } | Unreachable ${counts[5]})
+5. Active Channels: ${counts[6]}
+6. New Channels: ${counts[7]}
 
-7. Chat Requests: ${counts[6]}
-8. Channel Requests: ${counts[7]}
+7. Chat Requests: ${counts[8]}
+8. Channel Requests: ${counts[9]}
 
-9. Gemini API Calls: ${counts[8]}
-10. TextRazor API Calls: ${counts[9]}
-11. OpenRouter API Calls: ${counts[10]}`;
+9. Gemini API Calls: ${counts[10]}
+10. TextRazor API Calls: ${counts[11]}
+11. OpenRouter API Calls: ${counts[12]}`;
   return stats;
 }
 
@@ -475,10 +481,12 @@ async function getMetricsDisplayStates() {
 export async function retrieveMetricsCountsInRange(start, end) {
   return await Promise.all([
     registeredUsersCountWithinDateRange(end),
+    inactiveUsersCount(),
     activeUsersCountWithinDateRange(start, end),
     newUsersCountWithinDateRange(start, end),
 
     registeredChannelsCountWithinDateRange(end),
+    inactiveChannelsCount(),
     activeChannelsCountWithinDateRange(start, end),
     newChannelsCountWithinDateRange(start, end),
 

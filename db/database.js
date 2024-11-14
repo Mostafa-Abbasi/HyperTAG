@@ -754,6 +754,29 @@ async function registeredUsersCountWithinDateRange(endDate = null) {
   }
 }
 
+// Function to return the number of inactive user counts
+// (Inactive in this context means the users who stopped/blocked the bot or deleted their telegram accounts and are not reachable anymore)
+// is_active field for all users can be updated by /reachability command
+async function inactiveUsersCount() {
+  try {
+    // Query to count the total number of inactive users
+    const query = `
+       SELECT COUNT(*) AS inactiveUsersCount
+       FROM Users
+       WHERE is_active == 0
+     `;
+
+    // Execute the query
+    const result = await db.getAsync(query);
+
+    // Return the count of inactive users
+    return result.inactiveUsersCount;
+  } catch (err) {
+    logger.error("Error getting inactive users count", err);
+    return 0; // Return 0 if there is an error
+  }
+}
+
 // Function to return the number of distinct users who interacted with the bot either directly or via their channels
 // If endDate is null, it counts interactions from startDate to the current time
 async function activeUsersCountWithinDateRange(
@@ -864,6 +887,30 @@ async function registeredChannelsCountWithinDateRange(endDate = null) {
       "Error getting registered channel count up to the given date:",
       err
     );
+    return 0; // Return 0 if there is an error
+  }
+}
+
+// Function to return the number of inactive channel counts
+// (Inactive in this context means the channels which their owners /disconnect it from hypertag,
+// Removed the bot from channel or deleted the channel itself and are not reachable anymore)
+// is_active field for all channels can be updated by /reachability command
+async function inactiveChannelsCount() {
+  try {
+    // Query to count the total number of inactive channels
+    const query = `
+       SELECT COUNT(*) AS inactiveChannelsCount
+       FROM Channels
+       WHERE is_active == 0
+     `;
+
+    // Execute the query
+    const result = await db.getAsync(query);
+
+    // Return the count of inactive channels
+    return result.inactiveChannelsCount;
+  } catch (err) {
+    logger.error("Error getting inactive channels count", err);
     return 0; // Return 0 if there is an error
   }
 }
@@ -1242,9 +1289,11 @@ export {
   toggleSummaryFeatureForChannel,
   toggleBotSignatureForChannel,
   registeredUsersCountWithinDateRange,
+  inactiveUsersCount,
   activeUsersCountWithinDateRange,
   newUsersCountWithinDateRange,
   registeredChannelsCountWithinDateRange,
+  inactiveChannelsCount,
   activeChannelsCountWithinDateRange,
   newChannelsCountWithinDateRange,
   activeDirectUsersCountWithinDateRange,

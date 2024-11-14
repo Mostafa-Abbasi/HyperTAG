@@ -222,10 +222,12 @@ async function handleStatsCallback(message, data) {
 
       const [
         registeredUsersCount,
+        inactiveUsersCount,
         activeUsersCount,
         newUsersCount,
 
         registeredChannelsCount,
+        inactiveChannelsCount,
         activeChannelsCount,
         newChannelsCount,
 
@@ -256,11 +258,15 @@ async function handleStatsCallback(message, data) {
 <b>📅 Period: ${formattedDate}\n</b>
 <b>Today's Usage Stats</b>
 
-1. Registered Users: ${registeredUsersCount}
+1. Registered Users: ${registeredUsersCount} (Reachable ${
+          registeredUsersCount - inactiveUsersCount
+        } | Unreachable ${inactiveUsersCount})
 2. Active Users: ${activeUsersCount}
 3. New Users: ${newUsersCount}
 
-4. Registered Channels: ${registeredChannelsCount}
+4. Registered Channels: ${registeredChannelsCount} (Reachable ${
+          registeredChannelsCount - inactiveChannelsCount
+        } | Unreachable ${inactiveChannelsCount})
 5. Active Channels: ${activeChannelsCount}
 6. New Channels: ${newChannelsCount}
 
