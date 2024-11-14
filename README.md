@@ -18,7 +18,7 @@ The bot **analyzes the text content of your messages along with any included lin
 <p align="center"><img src="/assets/img0.jpg" alt="Generating Tag and Summary from a YouTube Url"  width="60%" height="60%"></p>
 
 <details>
-<summary><b>Expand to See More Usage Examples:</b></summary>
+<summary><b>Expand to See More Usage Examples:</b> ➡️</summary>
 
 - Generating Tag from a Text
 <p align="center"><img src="/assets/img1.jpg" alt="Generating Tag from a Text" width="60%" height="60%"></p>
@@ -119,7 +119,7 @@ After completing Step 4 of the installation, please take a moment to review the 
 This file contains a variety of customizable options that can significantly enhance your experience with HyperTAG. While certain settings, such as API keys for Telegram and Gemini, are mandatory, many others are optional and can greatly influence the bot's functionality. We encourage you to adjust these settings according to your preferences to optimize your hosting experience with HyperTAG.
 
 <details>
-<summary><b>Click Here for a Summary of Configurable Options in config.env</b></summary>
+<summary><b>Click Here for a Summary of Configurable Options in config.env</b> ➡️</summary>
 
 ### Required API Keys
 
