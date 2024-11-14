@@ -1,2 +1,2 @@
 # Ignore the actual database file, when the bot starts, it will be built automatically
-database.sqlite
+*.sqlite

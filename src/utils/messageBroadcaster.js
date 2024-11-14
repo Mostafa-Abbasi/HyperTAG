@@ -2,7 +2,7 @@
 
 import { sendMessage } from "../services/telegramServices.js";
 import { formatTextWithEntities } from "./textManipulator.js";
-import { getDatabaseInstance } from "../../db/database.js";
+import { getAllUsers } from "../../db/database.js";
 import logger from "./logger.js";
 
 // Helper function to sleep for a given duration (in milliseconds)
@@ -10,7 +10,6 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Function to broadcast a message to all users
 async function broadcastMessage(message) {
-  const db = getDatabaseInstance();
   const RATE_LIMIT = 30; // Telegram's rate limit: 30 messages per second
 
   // Prepare the broadcast message
@@ -21,28 +20,21 @@ async function broadcastMessage(message) {
 
   try {
     // Fetch all users from the database
-    const users = await db.allAsync(
-      "SELECT user_id, user_name, user_handle FROM Users"
-    );
-
-    if (!users || users.length === 0) {
-      logger.info("No users to broadcast to.");
-      return;
-    }
+    const users = await getAllUsers();
 
     for (let i = 0; i < users.length; i += RATE_LIMIT) {
       const batch = users.slice(i, i + RATE_LIMIT);
 
       // Send message to each user in the batch
       const sendPromises = batch.map((user) => {
-        const mockMessage = {
+        const Message = {
           from: {
             id: user.user_id,
             first_name: user.user_name,
             username: user.user_handle,
           },
         };
-        return sendMessage(mockMessage, formattedText).catch((err) =>
+        return sendMessage(Message, formattedText).catch((err) =>
           logger.error(
             `Failed to send message to ${user.user_name} @${user.user_handle} ID:${user.user_id}:`,
             err

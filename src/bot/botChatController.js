@@ -1,6 +1,10 @@
 // src/bot/botChatController.js
 
-import { sendImage, sendMessage } from "../services/telegramServices.js";
+import {
+  sendChatAction,
+  sendImage,
+  sendMessage,
+} from "../services/telegramServices.js";
 import { responseGeneratorForMessages } from "./responseGeneratorForMessages.js";
 import {
   getUserDetailsByUserId,
@@ -8,6 +12,10 @@ import {
   checkAndInsertUser,
   checkUserRateLimit,
   checkChannelRateLimit,
+  getAllUsers,
+  updateUserStatus,
+  getAllChannels,
+  updateChannelStatus,
 } from "../../db/database.js";
 import { verifySponsorChannelMembershipForBot } from "../utils/sponsorChannel.js";
 import { languages } from "../utils/languageList.js";
@@ -34,8 +42,9 @@ const validCommands = [
   "/faq",
   "/commands",
   "/languages",
-  "/stats",
+  "/reachability",
   "/broadcast",
+  "/stats",
   "/connect",
   "/disconnect",
   "/claim",
@@ -98,6 +107,10 @@ export async function handleMessage(message) {
 
       case "/languages":
         await handleLanguages(message);
+        break;
+
+      case "/reachability":
+        await handleReachability(message);
         break;
 
       case "/broadcast":
@@ -467,6 +480,7 @@ async function handleCommands(message) {
 - <b>/signature</b>: Toggle signature* on/off in channel posts 🛠️
 <b>*</b>Current signature: <i>"${config.textPlaceholders.botSignature}"</i>\n
 <b>Admin Commands:</b>
+- <b>/reachability</b>: Checks which Users/Channels is still reachable by ${config.textPlaceholders.botName} 🔎 (didn't stopped/blocked/removed the bot)
 - <b>/broadcast</b>: Send a message to all users 📡
 Example: <i>/broadcast Hello users!</i>
 - <b>/stats</b>: Graph representation of bot statistics 📉\n
@@ -502,6 +516,46 @@ async function handleChannelCommands(message, command) {
     message,
     `⚠️ <b>Invalid Command Usage</b>\n\nThe command <b>${command}</b> is intended to be used in a channel, not in a private chat. Please follow these steps to use it correctly:\n\n1. Add the bot as an admin in your channel.\n2. Enable "Sign messages" and "Show authors' profiles" in the channel settings. (You can disable these options after using the command.)\n\nExample Usage:\n\n<b>/connect</b> - To connect the bot to a channel (used in the channel)\n<b>/disconnect</b> - To disconnect the bot from a channel (used in the channel)\n<b>/claim</b> - To transfer channel ownership to your account (used in the channel)\n\nFor more information, please refer to the /faq section.`
   );
+}
+
+// Handles the /reachability command
+async function handleReachability(message) {
+  if (await verifySponsorChannelMembershipForBot(message)) {
+    const userId = message.chat.id;
+
+    // Only allow admin to use the Reachability command
+    if (userId !== config.adminId) {
+      await sendMessage(
+        message,
+        `⛔️ <b>Access Denied</b>\n\nYou are not authorized to use this command.`
+      );
+      return;
+    }
+
+    // Retrieve lists of all users and channels to check who has stopped/blocked the bot
+    const users = await getAllUsers();
+    const channels = await getAllChannels();
+
+    // Check users' Reachability
+    for (const user of users) {
+      const isAccessible = await sendChatAction(user);
+      await updateUserStatus(
+        user.user_id,
+        isAccessible ? "active" : "not-active"
+      );
+    }
+
+    // Check channels' Reachability
+    for (const channel of channels) {
+      const isAccessible = await sendChatAction(channel);
+      await updateChannelStatus(
+        channel.channel_id,
+        isAccessible ? "active" : "not-active"
+      );
+    }
+
+    await sendMessage(message, `🔍 <b>Reachability Check Complete</b>`);
+  }
 }
 
 // Handles the /broadcast command

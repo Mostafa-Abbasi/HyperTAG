@@ -9,7 +9,7 @@ import config from "../config/index.js";
 import logger from "../utils/logger.js";
 
 // Defining p-limit for controlling concurrency
-const limit = pLimit(10); // 10 concurrent requests
+const limit = pLimit(5); // 10 concurrent requests
 
 // Define the base configuration for the Axios instances
 const telegramApiBaseConfig = {
@@ -427,11 +427,44 @@ export async function editImage(
     return response.data.ok;
   } catch (error) {
     logger.error(
-      `Error editing image message ${messageId} for ${userName} ${userHandle} (id ${chatId}):`,
+      `Error editing image message ${messageId} for ${userName} ${userHandle} (id ${chatId})`,
       error
     );
 
     return false;
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
+// Send chat action to check if the user or channel is still accessible (for broadcasting and metrics purposes)
+export async function sendChatAction(entity, action = "typing") {
+  const chatId = entity.user_id || entity.channel_id;
+  const name = entity.user_name || entity.channel_name;
+  const handle = entity.user_handle || entity.channel_handle;
+
+  try {
+    const response = await rateLimitedInstance.post(`/sendChatAction`, {
+      chat_id: chatId,
+      action: action,
+    });
+    return response.data.ok; // if successful, returns true
+  } catch (error) {
+    if (error.response && error.response.data.error_code === 403) {
+      logger.info(
+        `${
+          entity.user_id ? "User" : "Channel"
+        } ${name} ${handle} (id ${chatId}) has blocked or deleted the bot.`
+      );
+      return false; // entity has blocked the bot
+    }
+    logger.error(
+      `Error sending chat action to ${
+        entity.user_id ? "user" : "channel"
+      } ${name} ${handle} (id ${chatId})`,
+      error
+    );
+    return null; // some other error occurred
   }
 }
 

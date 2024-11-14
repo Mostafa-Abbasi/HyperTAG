@@ -1,4 +1,4 @@
--- version: 1
+-- version: 3
 -- db/schema.sql
 
 -- Users table
@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS Users (
     user_id INTEGER PRIMARY KEY,
     user_name TEXT,
     user_handle TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
     is_vip BOOLEAN DEFAULT FALSE,
     summary_feature BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS Channels (
     channel_id INTEGER PRIMARY KEY,
     channel_name TEXT NOT NULL,
     channel_handle TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
     summary_feature BOOLEAN DEFAULT FALSE,
     bot_signature BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

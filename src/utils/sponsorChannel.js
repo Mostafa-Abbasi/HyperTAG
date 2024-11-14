@@ -36,7 +36,12 @@ export async function verifySponsorChannelMembershipForBot(message) {
 
 // Reusable function to ensure the user has joined the sponsor channel and can use the bot in channels
 export async function verifySponsorChannelMembershipForPosting(post) {
-  const { user_id: userId } = await getUserDetailsByChannelId(post.chat.id);
+  const userDetails = await getUserDetailsByChannelId(post.chat.id);
+  if (!userDetails) {
+    return; // Return early if user details are not found
+  }
+
+  const { user_id: userId } = userDetails;
 
   return await verifyMembership(userId, post, "posting");
 }

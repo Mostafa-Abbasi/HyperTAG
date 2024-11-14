@@ -197,7 +197,7 @@ ${formattedText}\n${summary ? summary : ""}${tags} ${
           post,
           `✅ <b>Post Edited Successfully</b>\n\nPost [${channelLink}${messageId}] was edited successfully in channel <b>${channelName}</b>.\n\n${
             summaryGenerationStatus ? "" : summaryGenerationFailureMessage
-          } <b>Tokens Used:</b> ${numUsedTokens}/${numAllTokens}\n<b>Remaining Tokens for Today:</b> ${
+          }<b>Tokens Used:</b> ${numUsedTokens}/${numAllTokens}\n<b>Remaining Tokens for Today:</b> ${
             numAllTokens - numUsedTokens
           }`
         );

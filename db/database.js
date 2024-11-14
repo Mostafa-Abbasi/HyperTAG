@@ -177,6 +177,12 @@ async function connectUserToChannel(userId, channelId) {
       "INSERT INTO UserChannels (user_id, channel_id, created_at) VALUES (?, ?, ?)",
       [userId, channelId, currentTime]
     );
+
+    // updating the channel status to active
+    await db.runAsync(
+      "UPDATE Channels SET is_active = ? WHERE channel_id = ?",
+      [true, channelId]
+    );
   } catch (err) {
     if (err.code === "SQLITE_CONSTRAINT") {
       logger.error("User is already connected to this channel.");
@@ -189,11 +195,21 @@ async function connectUserToChannel(userId, channelId) {
 // Function to unlink a user from a channel
 async function disconnectUserFromChannel(userId, channelId) {
   try {
+    // used in the case of /disconnect
     if (userId) {
+      // deleting the connection between the user and channel
       await db.runAsync(
         "DELETE FROM UserChannels WHERE user_id = ? AND channel_id = ?",
         [userId, channelId]
       );
+
+      // updating the channel status to not active
+      await db.runAsync(
+        "UPDATE Channels SET is_active = ? WHERE channel_id = ?",
+        [false, channelId]
+      );
+
+      // used in the case of /claim
     } else {
       await db.runAsync("DELETE FROM UserChannels WHERE channel_id = ?", [
         channelId,
@@ -277,17 +293,91 @@ async function isUserAllowedToConnectMoreChannels(userId) {
   }
 }
 
+// Function to get all users from the database
+async function getAllUsers() {
+  try {
+    // Fetch all users from the Users table
+    const users = await db.allAsync("SELECT * FROM Users");
+
+    if (!users || users.length === 0) {
+      logger.info("No users found in the database.");
+      return [];
+    }
+
+    return users;
+  } catch (error) {
+    logger.error("Error fetching users from database:", error);
+    return [];
+  }
+}
+
+// Function to update the user's status in the database
+async function updateUserStatus(userId, status) {
+  const isActive = status === "active" ? 1 : 0;
+
+  try {
+    await db.runAsync("UPDATE Users SET is_active = ? WHERE user_id = ?", [
+      isActive,
+      userId,
+    ]);
+
+    // check if user has any connected channels and if so, set those channels' status to not active
+    const userChannels = await getUserChannels(userId);
+
+    if (userChannels.length !== 0) {
+      for (const channel of userChannels) {
+        // updating the channel status to not active
+        await db.runAsync(
+          "UPDATE Channels SET is_active = ? WHERE channel_id = ?",
+          [false, channel.channel_id]
+        );
+      }
+    }
+  } catch (err) {
+    logger.error(`Error updating user status for user ID ${userId}:`, err);
+  }
+}
+
+// Function to get all channels from the database
+async function getAllChannels() {
+  try {
+    // Fetch all channels from the Channels table
+    const channels = await db.allAsync("SELECT * FROM Channels");
+
+    if (!channels || channels.length === 0) {
+      logger.info("No channels found in the database.");
+      return [];
+    }
+
+    return channels;
+  } catch (error) {
+    logger.error("Error fetching channels from database:", error);
+    return [];
+  }
+}
+
+// Function to update the channel's status in the database
+async function updateChannelStatus(channelId, status) {
+  const isActive = status === "active" ? 1 : 0;
+
+  try {
+    await db.runAsync(
+      "UPDATE Channels SET is_active = ? WHERE channel_id = ?",
+      [isActive, channelId]
+    );
+  } catch (err) {
+    logger.error(
+      `Error updating channel status for channel ID ${channelId}:`,
+      err
+    );
+  }
+}
+
 // Function to get all channels connected to a user
 async function getUserChannels(userId) {
   try {
     const rows = await db.allAsync(
-      `SELECT 
-        Channels.channel_id, 
-        Channels.channel_name, 
-        Channels.channel_handle, 
-        Channels.summary_feature,
-        Channels.bot_signature,
-        Channels.created_at 
+      `SELECT *
       FROM 
         UserChannels 
       INNER JOIN 
@@ -1137,6 +1227,10 @@ export {
   isChannelConnectedToAnotherUser,
   isChannelConnectedToCurrentUser,
   isUserAllowedToConnectMoreChannels,
+  getAllUsers,
+  updateUserStatus,
+  getAllChannels,
+  updateChannelStatus,
   getUserChannels,
   getUserDetailsByUserId,
   getUserDetailsByChannelId,

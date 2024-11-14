@@ -63,7 +63,7 @@ async function handleConnect(post) {
   if (from?.id === undefined) {
     await sendPost(
       post,
-      `⚙️ <b>Enable Required Settings</b>\n\nPlease enable "Sign messages" and "Show authors' profiles" in the channel's settings before using this command. You can disable them afterward.\n\nMessage sent from <b>@HyperTag_bot</b>`
+      `⚙️ <b>Enable Required Settings</b>\n\nPlease enable "Sign messages" and "Show authors' profiles" in the channel's settings before using this command. You can disable them afterward.\n\nMessage sent from <b>${config.textPlaceholders.botHandle}</b>`
     );
     return;
   }
@@ -117,7 +117,7 @@ async function handleDisconnect(post) {
   if (from?.id === undefined) {
     await sendPost(
       post,
-      `⚙️ <b>Enable Required Settings</b>\n\nPlease enable "Sign messages" and "Show authors' profiles" in the channel's settings before using this command. You can disable them afterward.\n\nMessage sent from <b>@HyperTag_bot</b>`
+      `⚙️ <b>Enable Required Settings</b>\n\nPlease enable "Sign messages" and "Show authors' profiles" in the channel's settings before using this command. You can disable them afterward.\n\nMessage sent from <b>${config.textPlaceholders.botHandle}</b>`
     );
     return;
   }
@@ -160,7 +160,7 @@ async function handleClaim(post) {
   if (from?.id === undefined) {
     await sendPost(
       post,
-      `⚙️ <b>Enable Required Settings</b>\n\nPlease enable "Sign messages" and "Show authors' profiles" in the channel's settings before using this command. You can disable them afterward.\n\nMessage sent from <b>@HyperTag_bot</b>`
+      `⚙️ <b>Enable Required Settings</b>\n\nPlease enable "Sign messages" and "Show authors' profiles" in the channel's settings before using this command. You can disable them afterward.\n\nMessage sent from <b>${config.textPlaceholders.botHandle}</b>`
     );
     return;
   }
