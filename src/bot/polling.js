@@ -85,8 +85,8 @@ const pollForUpdates = async () => {
   } catch (error) {
     logger.error("Error fetching updates:", error);
 
-    setTimeout(pollForUpdates, config.pollingInterval);
-    return;
+    // Continue polling even if there's an error fetching updates
+    return setTimeout(pollForUpdates, config.pollingInterval);
   }
 
   if (updates && updates.length > 0) {

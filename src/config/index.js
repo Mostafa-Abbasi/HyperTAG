@@ -93,6 +93,8 @@ const config = {
     botHandle: process.env.BOT_HANDLE,
     botLink: process.env.BOT_LINK,
     botSignature: process.env.BOT_SIGNATURE,
+    botSupportChannel: process.env.BOT_SUPPORT_CHANNEL,
+    botGitHubLink: process.env.BOT_GITHUB_LINK,
   },
 
   rateLimitingOptions: {

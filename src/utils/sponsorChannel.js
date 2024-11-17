@@ -18,8 +18,8 @@ async function verifyMembership(userId, chatId, messageType) {
     if (!userHasJoined) {
       const messageText =
         messageType === "bot"
-          ? `🚀 <b>To Use The BOT</b>\n\n1️⃣ Join the sponsor channel: <b>${config.botSettings.sponsorChannelLink}</b>\n2️⃣ Click on /start`
-          : `🚀 <b>To Use The BOT</b>\n\n1️⃣ Join the sponsor channel: <b>${config.botSettings.sponsorChannelLink}</b>\n2️⃣ Send your post again in the connected channel`;
+          ? `🚀 <b>To Use ${config.textPlaceholders.botName}</b>\n\n1️⃣ First Join The Sponsor Channel:\n<b><a href="${config.botSettings.sponsorChannelLink}">Click Here To Join The Sponsor Channel</a></b>\n\n2️⃣ Then, Click on <b>/start</b>`
+          : `🚀 <b>To Use ${config.textPlaceholders.botName}</b>\n\n1️⃣ First Join The Sponsor Channel:\n<b><a href="${config.botSettings.sponsorChannelLink}">Click Here To Join The Sponsor Channel</a></b>\n\n2️⃣ Then, Send Your Post Again in The Connected Channel`;
 
       await sendMessage(chatId, messageText);
       return false;

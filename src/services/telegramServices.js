@@ -539,9 +539,13 @@ export async function getLatestUpdateId() {
 
 // getting latest updates from telegram API
 export async function getUpdates() {
+  // increase or decrease this timeout based on your network conditions
+  const requestTimeout = 6000; // 6 seconds timeout
+
   try {
     const response = await instance.get("/getUpdates", {
       params: { offset },
+      timeout: requestTimeout,
     });
     const updates = response.data.result;
     if (updates.length > 0) {
@@ -549,6 +553,12 @@ export async function getUpdates() {
     }
     return updates;
   } catch (error) {
-    logger.error("Error fetching updates:", error);
+    if (error.code === "ECONNABORTED") {
+      logger.error(
+        `Requesting for Telegram updates timed out. (timeout: ${requestTimeout}ms)`
+      );
+    } else {
+      logger.error("Error fetching updates:", error);
+    }
   }
 }

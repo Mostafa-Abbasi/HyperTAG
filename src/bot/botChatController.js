@@ -146,10 +146,42 @@ export async function handleMessage(message) {
 // Handles the /start command
 async function handleStart(message) {
   if (await verifySponsorChannelMembershipForBot(message)) {
-    await sendMessage(
-      message,
-      `Welcome to <b>${config.textPlaceholders.botName}</b> 🤖\n\nUse <b>/help</b> to learn how to use the bot, and check out <b>/faq</b> to see frequently asked questions.`
-    );
+    // Text message to welcome the user
+    const welcomeMessage = `
+Welcome to <b>${config.textPlaceholders.botName}</b> 🤖\n
+Want to learn how to use the bot? Click an example button below, send the message, and see the bot in action.\n
+This is just the beginning! Use <b>/help</b> to explore more features.`;
+
+    // Inline keyboard with multiple buttons for different features
+    const inlineKeyboard = [
+      [
+        {
+          text: "Summary of a YouTube Video",
+          switch_inline_query_current_chat:
+            "Example of a YouTube Link:\n\nhttps://www.youtube.com/watch?v=kHFVZV-lj8g",
+        },
+      ],
+      [
+        {
+          text: "Summary of a Link's Content",
+          switch_inline_query_current_chat:
+            "Example of a Link:\n\nhttps://www.theverge.com/2024/5/14/24155321/google-search-ai-results-page-gemini-overview",
+        },
+      ],
+      [
+        {
+          text: "Hashtags Based On a Text",
+          switch_inline_query_current_chat: `Example of a Text:\n\n"Smart home technology has become a major trend in recent years, making everyday tasks easier and more convenient. With devices like smart lights, thermostats, security cameras, and voice-activated assistants, people can control nearly every aspect of their home with just a few taps on their smartphone or a simple voice command. Imagine being able to dim the lights, lock the doors, or play your favorite music without even having to get up – that’s the reality of smart homes today.\n
+One of the biggest benefits of smart home devices is energy efficiency. For example, smart thermostats learn your daily routines and automatically adjust temperatures to save energy, while smart lights can turn off when no one is in the room. Security has also improved with these technologies, allowing homeowners to monitor their property in real-time through smart cameras and receive alerts if any unusual activity is detected.\n
+These technologies are also helping people stay connected, even when they're not at home. Parents can keep an eye on their children, pet owners can check on their pets, and even everyday tasks like watering the garden or adjusting the window blinds can be managed remotely. As more people embrace this technology, homes are becoming more connected, secure, and eco-friendly. The future of smart homes promises even more innovations, such as better integration between devices, enhanced privacy features, and more affordable options for everyone."`,
+        },
+      ],
+    ];
+
+    // Send the welcome message with the inline keyboard
+    await sendMessage(message, welcomeMessage, {
+      reply_markup: { inline_keyboard: inlineKeyboard },
+    });
   }
 }
 
@@ -157,74 +189,20 @@ async function handleStart(message) {
 async function handleHelp(message) {
   const helpMessage = `
 <b>Welcome to ${config.textPlaceholders.botName} 🤖</b>\n
-This bot analyzes text in messages (including captions of photos and videos), to suggest relevant tags and much more!\n
-Key Features:\n
-📖 <b>Text Analysis</b>
-${config.textPlaceholders.botName} analyzes the text content of your messages to recommend tags.\n
-🔗 <b>Link Analysis</b>
-If your message contains Links, the bot extracts their main content (up to the first ${config.botSettings.numberOfUrlsToAnalyze} URLs) and considers it into the tag recommendation.\n
-🎥 <b>Youtube Analysis</b>
-${config.textPlaceholders.botName} retrieves captions from YouTube videos Links' (up to the first ${config.botSettings.numberOfUrlsToAnalyze} URLs) and also consider it for tag recommendation.\n
-📝 <b>Summarization*</b>
-${config.textPlaceholders.botName} can summarize the <b>First Link</b> in a message (Regular Link or Youtube Link), providing a concise version of the content in the form of Expandable Summaries.\n
-📢 <b>Channel Integration</b>
-You can add the bot to your channels, allowing it to generate tags and summaries for your posts automatically.\n\n
-Be sure to check the <b>/faq</b> and <b>/commands</b> sections for more details on how to use the bot.\n
-<b>*</b>Summarization Feature is turned off by default <b>for connected channels</b> but can be enabled using <b>/summary</b> command.\n
-If you have any questions or suggestions, feel free to reach out to the bot's creator at <b>${config.textPlaceholders.supportAccountHandle}</b>. 🙋‍♂️📞
-`;
-
-  // User inputs were analyzed by google gemini api (model: gemini-1.5-flash) for tag generation and summary generation
-  const exampleMessage = `
-<b>Below are some examples of how to interact with ${config.textPlaceholders.botName}:</b> ⁉️
-In each example, the first block shows the user's message, and the second block displays the bot's response, click on bot's block to expand it and see the full response.
-<blockquote><b>User Message</b></blockquote>
-<blockquote expandable><b>${config.textPlaceholders.botName}'s Response</b></blockquote>
-
-1. <b>Plain Text Message Analysis</b> 📖
-<blockquote>Apple officially launched the iPhone 16 series during its "Glowtime" event on Monday.
-The iPhone 16 and iPhone 16 Pro models are available to preorder now ahead of a September 20 release date. 
-The iPhone 16 series has Apple's new AI suite, Apple Intelligence, as a headlining feature, alongside new-generation processors and some hardware upgrades, including new larger displays for the Pro models.</blockquote>
-<blockquote expandable>#iPhone16 #AppleEvent #Glowtime #iPhone16Pro #AppleIntelligence #NewiPhone #TechNews #Apple #iPhoneRelease #TechUpdates\n
-Tokens Used: 1/10 📊
-Powered By ${config.textPlaceholders.botName} 🤖</blockquote>
-
-2. <b>Regular Link Analysis</b> 🔗
-<blockquote>techradar.com/news/iphone-16</blockquote>
-<blockquote expandable>#iPhone16 #Apple #AppleEvent #TechRadar #iPhone16Review #NewiPhone #iPhone16Release #iPhone16Specs #iPhone16Price #AppleIntelligence\n
-Tokens Used: 2/10 📊
-Powered By ${config.textPlaceholders.botName} 🤖</blockquote>
-
-3. <b>Youtube Link Analysis</b> 🎥
-<blockquote>youtube.com/watch?v=9lx11dy9J30</blockquote>
-<blockquote expandable>#AppleEvent #iPhone16 #iPhone16Pro #AppleWatchSeries10 #AppleWatchUltra2 #AirPods4 #AirPodsPro2 #AirPodsMax #iOS18 #AppleIntelligence\n
-Tokens Used: 3/10 📊
-Powered By ${config.textPlaceholders.botName} 🤖</blockquote>
-
-4. <b>Compound Analysis with Summarization Enabled (Plain Text + Youtube Link + Regular Link)</b> 📖🎥🔗📝
-<blockquote>Apple officially launched the iPhone 16 series during its "Glowtime" event on Monday.
-Here's a Youtube Link of iPhone 16 series first impressions from MKBHD: youtube.com/watch?v=9lx11dy9J30
-And here is a written article's Link from techradar: techradar.com/news/iphone-16</blockquote>
-<blockquote expandable>#iPhone16 #iPhone16Pro #AppleEvent #Apple #TechReview #MKBHD #FirstImpressions #NewiPhone #AppleWatchSeries10 #AppleWatchUltra2\n
-<b>"""</b>
-📝 Apple's iPhone 16 and 16 Pro series showcase iterative updates, including new camera layouts, the A18 bionic chip, and larger batteries without disclosed capacities. Notably, the iPhone 16 features the Action button and a new pressure-sensitive "Camera Control" button enabling diverse camera functionalities and third-party app integration. The Pro models boast larger displays (6.3 inches and 6.9 inches), the A18 Pro chip, upgraded cameras (48MP main and ultrawide, 5x telephoto on the Pro), faster wireless charging, and 4K 120 FPS slow-motion video. 
-
-However, the highly touted AI features, like Gen-moji and Image Playground, won't be available at launch and will be rolled out via future iOS 18 updates. This separation of hardware and software upgrades marks a significant shift in Apple's approach. The Apple Watch Series 10 offers a minor redesign with a thinner, lighter body, a larger display, and a new S10 chip. While the Apple Watch Ultra 2 mainly introduces a satin black finish, the Airpods 4 receive a redesigned shape and an optional noise-canceling version with a wireless charging case. Disappointingly, Airpods Max receives only new color options and a USB-C port, retaining the older H1 chip and its controversial case, despite its high price point.
-
-Overall, the announcements reveal a trend of incremental hardware improvements coupled with a delayed introduction of significant software features, particularly in AI. The new "Camera Control" button's utility and adoption remain to be seen, while the underwhelming Airpods Max update might disappoint consumers hoping for more substantial changes. Notably, the lack of specific battery life improvement metrics from Apple raises questions regarding the actual extent of the battery enhancements in the new iPhone models.
-
-✨ AI-Generated Summary (Check important info)
-<b>"""</b>\n
-Tokens Used: 4/10 📊
-Powered By ${config.textPlaceholders.botName} 🤖</blockquote>
+This bot analyzes text and links in your messages (including captions for photos, videos, or documents) to generate relevant tags and quick summaries. Discover how it works by watching the demos. Key features include:\n
+🎥 <b>YouTube Video Link Analysis (<a href="t.me/Falken_Devlog/11">Demo</a>)</b>
+Analyzes YouTube links by extracting captions for tag recommendations and summarizing the video's content.\n
+🔗 <b>Link Analysis (<a href="t.me/Falken_Devlog/10">Demo</a> & <a href="t.me/Falken_Devlog/12">Demo</a>)</b>
+Extracts content from links in your messages (up to ${config.botSettings.numberOfUrlsToAnalyze} URLs) to suggest relevant tags and generate a brief summary from the <b>First</b> link's content.\n
+📖 <b>Text Analysis (<a href="t.me/Falken_Devlog/9">Demo</a>)</b>
+Generates tags based on your message's text.\n
+📢 <b>Channel Integration (<a href="t.me/Falken_Devlog/14">Demo</a> & <a href="t.me/Falken_Devlog/13">Demo</a>)</b>
+Add the bot to your channel to automatically generate tags and summaries for your posts, use <b>/faq</b> or <b>/commands</b> to learn how to connect your channels.\n
+📌 HyperTAG is an open-source project, check out its <b><a href="${config.textPlaceholders.botGitHubLink}">GitHub repository</a></b> and consider giving it a star!\n
+📌 Have questions or feedbacks? Head over to the <b><a href="${config.textPlaceholders.botSupportChannel}">Support Channel</a></b>.
 `;
 
   await sendMessage(message, helpMessage);
-  await sendMessage(message, exampleMessage, {
-    link_preview_options: {
-      is_disabled: true,
-    },
-  });
 }
 
 // Handles the /tokens command
@@ -422,7 +400,7 @@ async function handleSignature(message) {
 // Handles the /faq command
 async function handleFaq(message) {
   const faqMessage = `
-<b>🔍 Frequently Asked Questions (FAQs)</b> (Click on Answers to See the Whole Text)\n\n
+<b>🔍 Frequently Asked Questions (FAQs)</b> (Click on Answers to See the Whole Text)\n
 <b>❓What does ${config.textPlaceholders.botName} do?</b>
 <blockquote expandable>- This bot analyzes the text content of normal messages or messages that have caption such as photos and videos to generate relevant <b>English</b> tags.
 It also extracts text from the first <b>${config.botSettings.numberOfUrlsToAnalyze}</b> URLs (even youtube links) in each message and incorporates it into the final tag recommendations.</blockquote>\n
@@ -441,17 +419,17 @@ This is because we first identify and then translate any non-english retrieved t
 <blockquote expandable>- Only one channel can be connected at a time by a non-vip user. To connect a new one, first use <b>/disconnect</b> to remove the currently connected channel.</blockquote>\n
 <b>🔑 I lost access to my account but I’m still an admin of a connected channel with a different account. What can I do?*</b>
 <blockquote expandable>- Use the <b>/claim</b> command in the channel to transfer ownership to your new account.</blockquote>\n
-<b>🔄 My channel was connected before but HyperTag doesn't generate tags for posts anymore. What should I do?*</b>
+<b>🔄 My channel was connected before but ${config.textPlaceholders.botName} doesn't generate tags for posts anymore. What should I do?*</b>
 <blockquote expandable>- Try reconnecting the bot to your channel. Use <b>/connect</b> in the channel to re-establish the connection.</blockquote>\n
 <b>📊 What if I run out of tokens?</b>
 <blockquote expandable>- Wait for the daily reset at 00:00 UTC, use <b>/tokens</b> to check used/remaining tokens and remaining time until reset.</blockquote>\n
 <b>📈 Why do I need to subscribe to the sponsor channel?</b>
 <blockquote expandable>- The bot is free to use, but maintaining it requires resources. Subscribing to the sponsor channel helps support its ongoing development and operation.</blockquote>\n
 <b>🛠️ Is there a way to use the bot without restrictions?</b>
-<blockquote expandable>- Yes! The bot is open-source, so you can fork the project on GitHub and host it yourself. This allows you to remove restrictions and customize the bot’s settings in the config.env file as needed.</blockquote>\n
+<blockquote expandable>- Yes! The bot is open-source (<b><a href="${config.textPlaceholders.botGitHubLink}">GitHub repository link</a></b>), so you can fork the project on GitHub and host it yourself. This allows you to remove restrictions and customize the bot’s settings in the config.env file as needed.</blockquote>\n
 <b>[IMPORTANT]</b>
 <b>*</b>Remember to always enable <b>Sign messages</b> and <b>Show authors' profiles</b> in the channel's settings when using channel-related commands such as <b>/connect</b>, <b>/disconnect</b>, and <b>/claim</b>. These options can be turned-off afterward.\n
-If you need more help, feel free to reach out to bot's creator (<b>${config.textPlaceholders.supportAccountHandle}</b>) or refer to the <b>/help</b> and <b>/commands</b> sections. 🙋‍♂️📞
+📌 Have questions or feedbacks? Head over to the <b><a href="${config.textPlaceholders.botSupportChannel}">Support Channel</a></b> or check out the <b>/help</b> and <b>/commands</b> sections.
 `;
   await sendMessage(message, faqMessage);
 }
@@ -487,7 +465,7 @@ Example: <i>/broadcast Hello users!</i>
 <b>Additional Information:</b>
 - <b>Sponsor Channel Membership</b>: Access to the bot's features requires membership in the sponsor channel. The bot will verify your membership before processing any requests.
 - <b>Token Limits</b>: The bot uses a token system to manage usage. Use <b>/tokens</b> to monitor your usage and see when your tokens will reset.\n
-If you need more help, feel free to reach out to bot's creator (<b>${config.textPlaceholders.supportAccountHandle}</b>) or refer to the <b>/help</b> and <b>/faq</b> sections. 🙋‍♂️📞
+📌 Have questions or feedbacks? Head over to the <b><a href="${config.textPlaceholders.botSupportChannel}">Support Channel</a></b> or check out the <b>/help</b> and <b>/faq</b> sections.
 `;
   await sendMessage(message, commandsMessage);
 }
