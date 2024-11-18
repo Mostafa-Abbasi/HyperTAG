@@ -1,7 +1,7 @@
 [![Release](https://img.shields.io/github/v/release/Mostafa-Abbasi/HyperTAG?style=flat-square&label=Release)](https://github.com/Mostafa-Abbasi/HyperTAG/releases)
 [![Bot Link](https://img.shields.io/badge/Bot-Telegram-blue.svg?logo=telegram)](https://t.me/HyperTAG_bot)
 [![Bot Link](https://img.shields.io/badge/Channel-Telegram-blue.svg?logo=telegram)](https://t.me/Falken_Devlog)
-[![License](https://img.shields.io/github/license/Mostafa-Abbasi/HyperTAG?style=flat-square&label=License)](https://github.com/Mostafa-Abbasi/HyperTAG/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/Mostafa-Abbasi/HyperTAG?style=flat-square&label=License)](https://github.com/Mostafa-Abbasi/HyperTAG/blob/main/LICENSE.md)
 
 <p align="center"><img src="/assets/HyperTag_Logo.svg" width="250" height="250"></p>
 
