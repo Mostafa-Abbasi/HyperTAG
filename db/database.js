@@ -311,6 +311,25 @@ async function getAllUsers() {
   }
 }
 
+// Function to get all users from the database who are reachable (did not blocked/stopped the bot or didn't deleted their accounts)
+// this list is needed so we can broadcast messages more efficiently only to the users who can receive it
+async function getAllUsersForBroadcasting() {
+  try {
+    // Fetch all users from the Users table
+    const users = await db.allAsync("SELECT * FROM Users WHERE is_active = 1");
+
+    if (!users || users.length === 0) {
+      logger.info("No users found in the database.");
+      return [];
+    }
+
+    return users;
+  } catch (error) {
+    logger.error("Error fetching users from database:", error);
+    return [];
+  }
+}
+
 // Function to update the user's status in the database
 async function updateUserStatus(userId, status) {
   const isActive = status === "active" ? 1 : 0;
@@ -1275,6 +1294,7 @@ export {
   isChannelConnectedToCurrentUser,
   isUserAllowedToConnectMoreChannels,
   getAllUsers,
+  getAllUsersForBroadcasting,
   updateUserStatus,
   getAllChannels,
   updateChannelStatus,

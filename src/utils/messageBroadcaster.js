@@ -2,7 +2,7 @@
 
 import { sendMessage } from "../services/telegramServices.js";
 import { formatTextWithEntities } from "./textManipulator.js";
-import { getAllUsers } from "../../db/database.js";
+import { getAllUsersForBroadcasting } from "../../db/database.js";
 import logger from "./logger.js";
 
 // Helper function to sleep for a given duration (in milliseconds)
@@ -20,7 +20,7 @@ async function broadcastMessage(message) {
 
   try {
     // Fetch all users from the database
-    const users = await getAllUsers();
+    const users = await getAllUsersForBroadcasting();
 
     for (let i = 0; i < users.length; i += RATE_LIMIT) {
       const batch = users.slice(i, i + RATE_LIMIT);

@@ -9,7 +9,7 @@ import config from "../config/index.js";
 import logger from "../utils/logger.js";
 
 // Defining p-limit for controlling concurrency
-const limit = pLimit(5); // 10 concurrent requests
+const limit = pLimit(20); // 20 concurrent requests
 
 // Define the base configuration for the Axios instances
 const telegramApiBaseConfig = {
