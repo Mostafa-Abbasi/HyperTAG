@@ -246,10 +246,12 @@ export async function processGraphStatsRequest(
 
       const [
         registeredUsersCount,
+        inactiveUsersCount, // it won't be used for graph, just for maintaining the oder of variables
         activeUsersCount,
         newUsersCount,
 
         registeredChannelsCount,
+        inactiveChannelsCount, // it won't be used for graph, just for maintaining the oder of variables
         activeChannelsCount,
         newChannelsCount,
 
