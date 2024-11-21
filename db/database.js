@@ -331,7 +331,11 @@ async function getAllUsersForBroadcasting() {
 }
 
 // Function to update the user's status in the database
-async function updateUserStatus(userId, status) {
+async function updateUserStatus(user, status) {
+  const userId = user.user_id;
+  const userName = user.user_name || "";
+  const userHandle = user.user_handle || "";
+
   const isActive = status === "active" ? 1 : 0;
 
   try {
@@ -340,16 +344,30 @@ async function updateUserStatus(userId, status) {
       userId,
     ]);
 
+    if (isActive !== 1)
+      logger.info(
+        `User ${userName} ${userHandle} (id ${userId}) has stopped the bot or deleted their account.`
+      );
+
     // check if user has any connected channels and if so, set those channels' status to not active
     const userChannels = await getUserChannels(userId);
 
     if (userChannels.length !== 0) {
       for (const channel of userChannels) {
+        const channelId = channel.channel_id;
+        const channelName = channel.channel_name || "";
+        const channelHandle = channel.channel_handle || "";
+
         // updating the channel status to not active
         await db.runAsync(
           "UPDATE Channels SET is_active = ? WHERE channel_id = ?",
-          [false, channel.channel_id]
+          [isActive, channel.channel_id]
         );
+
+        if (isActive !== 1)
+          logger.info(
+            `Channel ${channelName} ${channelHandle} (id ${channelId}) for User ${userName} ${userHandle} (id ${userId}) has been set to not active. (user can't be reached)`
+          );
       }
     }
   } catch (err) {
@@ -376,14 +394,40 @@ async function getAllChannels() {
 }
 
 // Function to update the channel's status in the database
-async function updateChannelStatus(channelId, status) {
-  const isActive = status === "active" ? 1 : 0;
+async function updateChannelStatus(channel, status) {
+  const channelId = channel.channel_id;
+  const channelName = channel.channel_name || "";
+  const channelHandle = channel.channel_handle || "";
+
+  let isActive;
+
+  // if it's a channel and the sent status is active (or 1), validate if it's already connected to a user and then update is_active with 1
+  // (meaning that the user has not /disconnect the bot from the channel)
+  // otherwise, upadte is_active with 0
+  // (meaning that the bot is still in the channel but user did use /disconnect)
 
   try {
+    // checking if the channel is connected to any user
+    const result = await db.getAsync(
+      "SELECT * FROM UserChannels WHERE channel_id = ?",
+      [channelId]
+    );
+
+    if (result) {
+      isActive = status === "active" ? 1 : 0;
+    } else {
+      isActive = 0;
+    }
+
     await db.runAsync(
       "UPDATE Channels SET is_active = ? WHERE channel_id = ?",
       [isActive, channelId]
     );
+
+    if (isActive !== 1)
+      logger.info(
+        `Channel ${channelName} ${channelHandle} (id ${channelId}) has disconnected/removed the bot or got deleted itself.`
+      );
   } catch (err) {
     logger.error(
       `Error updating channel status for channel ID ${channelId}:`,

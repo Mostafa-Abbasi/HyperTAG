@@ -437,26 +437,26 @@ export async function editImage(
 
 /////////////////////////////////////////////////////////////////////////////////
 
-// Send chat action to check if the user or channel is still accessible (for broadcasting and metrics purposes)
+// Send chat action to check if the user or channel is still reachable
+// (used for updating is_active db column which is then used for broadcasting and stats)
 export async function sendChatAction(entity, action = "typing") {
   const chatId = entity.user_id || entity.channel_id;
-  const name = entity.user_name || entity.channel_name;
-  const handle = entity.user_handle || entity.channel_handle;
+  const name = entity.user_name || entity.channel_name || "";
+  const handle = entity.user_handle || entity.channel_handle || "";
 
   try {
     const response = await rateLimitedInstance.post(`/sendChatAction`, {
       chat_id: chatId,
       action: action,
     });
-    return response.data.ok; // if successful, returns true
+
+    return response.data.ok;
   } catch (error) {
-    if (error.response && error.response.data.error_code === 403) {
-      logger.info(
-        `${
-          entity.user_id ? "User" : "Channel"
-        } ${name} ${handle} (id ${chatId}) has blocked or deleted the bot.`
-      );
-      return false; // entity has blocked the bot
+    if (
+      (error.response && error.response.data.error_code === 403) ||
+      (error.response && error.response.data.error_code === 400)
+    ) {
+      return false; // entity is not reachable
     }
     logger.error(
       `Error sending chat action to ${

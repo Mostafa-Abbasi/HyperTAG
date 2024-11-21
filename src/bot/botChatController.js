@@ -110,7 +110,7 @@ export async function handleMessage(message) {
         break;
 
       case "/reachability":
-        await handleReachability(message);
+        await handleReachability(message, messageText);
         break;
 
       case "/broadcast":
@@ -447,24 +447,24 @@ async function handleCommands(message) {
 - <b>/faq</b>: Frequently Asked Questions ❓
 - <b>/commands</b>: See available commands 🛠️
 - <b>/languages</b>: View Supported Languages 🌎\n
-<b>Channel Commands:*</b>
+<b>Channel* Commands:</b>
 - <b>/connect</b>: Connect the bot to a channel 🚀
 - <b>/disconnect</b>: Disconnect the bot from a channel 🔌
 - <b>/claim</b>: Transfer channel ownership to your account 👑\n
-<b>*</b>To use these commands in a channel, follow these steps first:
+<b>*</b> To use these commands in a channel, follow these steps first:
 <b>1.</b> Add the bot as an admin in your channel.
-<b>2.</b> Enable <b>Sign messages</b> and <b>Show authors' profiles</b> in the channel settings. (You only need these options enabled while using the above commands in a channel, so you can disable them after e.g. adding the bot to the channel by /connect command)\n
+<b>2.</b> Enable <b>Sign messages</b> and <b>Show authors' profiles</b> in the channel settings. (These options are only required while using the commands above in a channel and can be disabled afterward, e.g., after successfully adding the bot with the /connect command)\n
 <b>VIP Command:</b>
-- <b>/signature</b>: Toggle signature* on/off in channel posts 🛠️
-<b>*</b>Current signature: <i>"${config.textPlaceholders.botSignature}"</i>\n
+- <b>/signature</b>: Toggle signature on/off at the end of channel posts 🛠️
+  + Current signature: <i>${config.textPlaceholders.botSignature}</i>\n
 <b>Admin Commands:</b>
-- <b>/reachability</b>: Checks which Users/Channels is still reachable by ${config.textPlaceholders.botName} 🔎 (didn't stopped/blocked/removed the bot)
+- <b>/reachability</b>: Update which users or channels are still reachable by ${config.textPlaceholders.botName} 🔎 (i.e., have not stopped, disconnect or removed the bot). 
+  + <i>/reachability</i>: Check users & channels
+  + <i>/reachability -u</i>: Check only users
+  + <i>/reachability -c</i>: Check only channels
 - <b>/broadcast</b>: Send a message to all users 📡
-Example: <i>/broadcast Hello users!</i>
+  + <i>/broadcast Hello Users!</i>: Broadcasts "Hello Users!" to all users
 - <b>/stats</b>: Graph representation of bot statistics 📉\n
-<b>Additional Information:</b>
-- <b>Sponsor Channel Membership</b>: Access to the bot's features requires membership in the sponsor channel. The bot will verify your membership before processing any requests.
-- <b>Token Limits</b>: The bot uses a token system to manage usage. Use <b>/tokens</b> to monitor your usage and see when your tokens will reset.\n
 📌 Have questions or feedbacks? Head over to the <b><a href="${config.textPlaceholders.botSupportChannel}">Support Channel</a></b> or check out the <b>/help</b> and <b>/faq</b> sections.
 `;
   await sendMessage(message, commandsMessage);
@@ -497,7 +497,11 @@ async function handleChannelCommands(message, command) {
 }
 
 // Handles the /reachability command
-async function handleReachability(message) {
+// can be called in 3 ways: (with -u argument it only runs for users & with -c only runs for channels - it will run for both if no argument is specified)
+// 1. /reachability
+// 2. /reachability -u
+// 3. /reachability -c
+async function handleReachability(message, messageText) {
   if (await verifySponsorChannelMembershipForBot(message)) {
     const userId = message.chat.id;
 
@@ -510,29 +514,51 @@ async function handleReachability(message) {
       return;
     }
 
+    // Remove "/reachability " from the message to see if anything remains
+    const reachabilityArgument = messageText.split(" ").slice(1).join(" ");
+
     // Retrieve lists of all users and channels to check who has stopped/blocked the bot
     const users = await getAllUsers();
     const channels = await getAllChannels();
 
-    // Check users' Reachability
-    for (const user of users) {
-      const isAccessible = await sendChatAction(user);
-      await updateUserStatus(
-        user.user_id,
-        isAccessible ? "active" : "not-active"
-      );
+    switch (reachabilityArgument) {
+      case "-u": // "/reachability -u"
+        // Check users' Reachability
+        for (const user of users) {
+          const isAccessible = await sendChatAction(user);
+          await updateUserStatus(user, isAccessible ? "active" : "not-active");
+        }
+        break;
+
+      case "-c": // "/reachability -c"
+        // Check channels' Reachability
+        for (const channel of channels) {
+          const isAccessible = await sendChatAction(channel);
+          await updateChannelStatus(
+            channel,
+            isAccessible ? "active" : "not-active"
+          );
+        }
+        break;
+
+      default: // "/reachability"
+        // Check users' Reachability
+        for (const user of users) {
+          const isAccessible = await sendChatAction(user);
+          await updateUserStatus(user, isAccessible ? "active" : "not-active");
+        }
+
+        // Check channels' Reachability
+        for (const channel of channels) {
+          const isAccessible = await sendChatAction(channel);
+          await updateChannelStatus(
+            channel,
+            isAccessible ? "active" : "not-active"
+          );
+        }
     }
 
-    // Check channels' Reachability
-    for (const channel of channels) {
-      const isAccessible = await sendChatAction(channel);
-      await updateChannelStatus(
-        channel.channel_id,
-        isAccessible ? "active" : "not-active"
-      );
-    }
-
-    await sendMessage(message, `🔍 <b>Reachability Check Complete</b>`);
+    await sendMessage(message, `🔍 <b>Reachability Check Finished</b>`);
   }
 }
 
