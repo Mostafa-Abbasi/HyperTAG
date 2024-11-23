@@ -134,14 +134,14 @@ This file contains a variety of customizable options that can significantly enha
 
 ### Tag Generation
 
-- `TAG_GENERATION_METHOD`: Select method for tag generation (`1` for Google Gemini, `2` for TextRazor).
-- `TEXTRAZOR_API_KEYS`: TextRazor API keys (optional for method 2).
+- `TAG_GENERATION_METHOD`: Select method for tag generation (`1` for Google Gemini, `2` for OpenAI-Compatible, `3` for Ollama, `4` for TextRazor).
+- `OPENROUTER_API_KEYS`: OpenRouter API keys (required for method 2).
+- `TEXTRAZOR_API_KEYS`: TextRazor API keys (required for method 4).
 
 ### Summarization
 
 - `ENABLE_SUMMARIZATION`: Enable/disable URL summarization (`true` or `false`).
 - `SUMMARIZATION_METHOD`: Select method for summarization (`1` for Google Gemini, `2` for OpenAI-Compatible, `3` for Ollama).
-- `OPENROUTER_API_KEYS`: OpenRouter API keys (optional for method 2).
 
 ### Proxy Options (Optional)
 
