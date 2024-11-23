@@ -1,4 +1,5 @@
 // src/utils/textManipulator.js
+import sanitizeHtml from "sanitize-html";
 import config from "../config/index.js";
 
 // Function to format text with entities into an HTML string
@@ -145,4 +146,14 @@ export async function entitiesUrlsExtractor(text, entities = []) {
 
   // Limit the number of URLs for future analysis
   return entityUrls.slice(0, config.botSettings.numberOfUrlsToAnalyze); // default: 2, you can change value in config.env
+}
+
+export function getMessageCharacterCountWithoutHtmlTags(html) {
+  // Sanitize and return only the number of characters in the text content
+  const sanitizedText = sanitizeHtml(html, {
+    allowedTags: [], // Remove all tags
+    allowedAttributes: {}, // Remove all attributes
+  });
+
+  return sanitizedText.length;
 }

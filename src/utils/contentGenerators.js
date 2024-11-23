@@ -58,7 +58,7 @@ export async function tagGenerator(text, urlContents) {
 }
 
 // generating a summary using LLM for the text retrieved from FIRST URL in the message
-export async function summaryGenerator(inputText) {
+export async function summaryGenerator(inputText, src, messageType) {
   // Check if the text needs translation or not, and if it does, translate it to english
   let translatedText = await translator(inputText);
   // if something went wrong in translation (e.g. language not supported or translation was off), re-assign the input text to translatedText
@@ -71,15 +71,27 @@ export async function summaryGenerator(inputText) {
     switch (config.summarizationSettings.summarizationMethod) {
       case 1:
         // Generating a summary using Google Gemini API
-        summary = await googleGeminiSummaryGenerator(translatedText);
+        summary = await googleGeminiSummaryGenerator(
+          translatedText,
+          src,
+          messageType
+        );
         break;
       case 2:
         // Generating a summary using an online provider (openRouter.ai) with OpenAI-Compatible API
-        summary = await openAiCompatibleSummaryGenerator(translatedText);
+        summary = await openAiCompatibleSummaryGenerator(
+          translatedText,
+          src,
+          messageType
+        );
         break;
       case 3:
         // Generating a summary using a local-hosted LLM with ollama API
-        summary = await ollamaSummaryGenerator(translatedText);
+        summary = await ollamaSummaryGenerator(
+          translatedText,
+          src,
+          messageType
+        );
         break;
       default:
         logger.error("Please choose a summarization method in config.env");

@@ -47,23 +47,29 @@ import logger from "./logger.js";
 const limit = pLimit(2);
 
 // This system prompt is same for all methods.
-const baseSystemPrompt = `Your task is to provide a well-structured, concise, and informative summary in english language. 
-Guidelines:
-- Length: Summarize the content in about 2 to 3 paragraphs at most.
+const baseSystemPrompt = `
 - Content: capture the main ideas and any critical statistics or data points.
 - Tone: Maintain a neutral and professional tone.
 - Audience: Tailor the level of detail and complexity to suit an expert audience familiar with the subject matter.
 - Structure: Use a paragraph format without markdown symbols, ensuring the text is clear, cohesive, and logically organized.
 Provide the summary only, without any introductory or concluding remarks.`;
 
-// Function to get the final system prompt based on source type (source can be either a regular url or a youtube url)
-function getSystemPrompt(src) {
-  const specificInstruction =
+// Function to get the final system prompt based on source type (source can be either a regular url or a youtube url) and message type (text or caption)
+function getSystemPrompt(src, messageType) {
+  const sourceOfContent =
     src === "youtube"
       ? "The text input is a transcript from the subtitles of a YouTube video."
       : "The text input is from a website, it may be a news article, product review/comparison, a blog post, or a more general content.";
 
-  return `You are an advanced language model specializing in summarization. ${specificInstruction} ${baseSystemPrompt}`;
+  // Message Type can be text (regular channel posts - 4096 char limit) or caption (for channel posts that are photos, videos or documents - 1024 char limit)
+  const summaryLengthRule =
+    messageType === "caption"
+      ? "- Length: Summarize the content in 1 very short paragraph at most."
+      : "- Length: Summarize the content in about 2 to 3 paragraphs at most.";
+
+  return `You are an advanced language model specializing in summarization. Your task is to provide a well-structured, concise, and informative summary in english language. ${sourceOfContent}
+Guidelines:
+${summaryLengthRule} ${baseSystemPrompt}`;
 }
 
 // Function to generate a summary using Google Gemini -- v1beta REST API which supports system prompts natively - we can use proxy in this solution
@@ -71,9 +77,9 @@ function getSystemPrompt(src) {
 // This function will probably needs some minor changes to function as before.
 // Documentation from google on how to use system instructions in Rest API Endpoint (in case of needing to adapt this function with future API versions):
 // https://github.com/google-gemini/cookbook/blob/main/quickstarts/rest/System_instructions_REST.ipynb
-export async function googleGeminiSummaryGenerator(prompt, src) {
+export async function googleGeminiSummaryGenerator(prompt, src, messageType) {
   return limit(async () => {
-    const systemPrompt = getSystemPrompt(src);
+    const systemPrompt = getSystemPrompt(src, messageType);
 
     try {
       // See the list of available models and their rate limits at https://ai.google.dev/gemini-api/docs/models/gemini
@@ -179,9 +185,9 @@ export async function googleGeminiSummaryGenerator(prompt, src) {
 // YOU CAN USE THIS FUNCTION IF FOR SOME REASON LAST ONE (REST API v1beta EDNPOINT) HAS FAILED AND YOU DON'T NEED TO ENABLE PROXY FOR GOOGLE GEMINI
 
 // // Function to generate a summary using Google Gemini -- using @google/generative-ai library - it is very good but we can't use proxy with this
-// export async function googleGeminiSummaryGenerator(prompt, src) {
+// export async function googleGeminiSummaryGenerator(prompt, src, messageType) {
 //   return limit(async () => {
-//     const systemPrompt = getSystemPrompt(src);
+//     const systemPrompt = getSystemPrompt(src, messageType);
 
 //     try {
 //       // Randomly select one API key from the array of keys
@@ -255,9 +261,13 @@ export async function googleGeminiSummaryGenerator(prompt, src) {
 // -------------------------------------------------------------------------
 
 // Function to generate a response using OpenAI-Compatible API with retry (We're using OpenRouter in here which has a compatible OpenAI API)
-export async function openAiCompatibleSummaryGenerator(prompt, src) {
+export async function openAiCompatibleSummaryGenerator(
+  prompt,
+  src,
+  messageType
+) {
   return limit(async () => {
-    const systemPrompt = getSystemPrompt(src);
+    const systemPrompt = getSystemPrompt(src, messageType);
 
     // Wrap the API call in retryWithDelay
     return retryWithDelay(async () => {
@@ -320,8 +330,8 @@ export async function openAiCompatibleSummaryGenerator(prompt, src) {
 // You can see the list of popular models from Ollama Models Page (https://ollama.com/library) or alternatively use hugging face models (https://huggingface.co/models)
 
 // Function to get a streamed completion from the LLM using Ollama API
-export async function ollamaSummaryGenerator(prompt, src) {
-  const systemPrompt = getSystemPrompt(src); // Selecting system prompt based on source
+export async function ollamaSummaryGenerator(prompt, src, messageType) {
+  const systemPrompt = getSystemPrompt(src, messageType); // Selecting system prompt based on source
 
   try {
     // Get the number of logical CPU cores
@@ -400,9 +410,9 @@ export async function ollamaSummaryGenerator(prompt, src) {
 // -----------------------------------------------
 // -----------------------------------------------
 // Function to generate a summary using Google Gemini -- v1 version that doesn't support system instruction and we will give it system instruction in chat
-// export async function googleGeminiSummaryGenerator(prompt, src) {
+// export async function googleGeminiSummaryGenerator(prompt, src, messageType) {
 //   return limit(async () => {
-//     const systemPrompt = getSystemPrompt(src);
+//     const systemPrompt = getSystemPrompt(src, messageType);
 
 //     try {
 //       const selectedModel = "gemini-1.5-flash";

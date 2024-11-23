@@ -10,6 +10,7 @@ import { tagGenerator, summaryGenerator } from "../utils/contentGenerators.js";
 import {
   entitiesUrlsExtractor,
   formatTextWithEntities,
+  getMessageCharacterCountWithoutHtmlTags,
   sanitizeText,
 } from "../utils/textManipulator.js";
 import { fetchUrlContents } from "../utils/urlFetcher.js";
@@ -140,6 +141,7 @@ Post in channel ${channelName} [${channelLink}${messageId}] is too long. Please 
   // 2. Check if there is any text content retrieved at all from the first URL
   // (Using youtube caption downloader or primary context extender or secondary context extender)
   // 3. Check if the data is summarizable (retrieved from youtube caption downloader or primary context extender and not secondary context extender)
+
   if (
     channelDetails?.summary_feature &&
     urlContents[0]?.content &&
@@ -148,7 +150,8 @@ Post in channel ${channelName} [${channelLink}${messageId}] is too long. Please 
   ) {
     summary = await summaryGenerator(
       urlContents[0].content,
-      urlContents[0].src
+      urlContents[0].src,
+      messageType
     );
 
     // Format the summary if it's generated
@@ -182,8 +185,10 @@ ${formattedText}\n${summary ? summary : ""}${tags} ${
 
     let ok;
     if (
-      (post.caption && updatedText.length <= 1024) ||
-      (post.text && updatedText.length <= 4096)
+      // 1024 -> 1030 & 4096 -> 4100 to be on the safe side
+      (post.caption &&
+        getMessageCharacterCountWithoutHtmlTags(updatedText) < 1030) ||
+      (post.text && getMessageCharacterCountWithoutHtmlTags(updatedText) < 4100)
     ) {
       if (post.caption) {
         ok = await editPostCaption(post, updatedText); // Edit caption if it's a media post
@@ -214,8 +219,10 @@ ${formattedText}\n${summary ? summary : ""}${tags} ${
       return;
     } else if (
       // telegram supports up to 1024 characters for media posts with captions and 4096 characters for regular text posts
-      (post.caption && updatedText.length > 1024) ||
-      (post.text && updatedText.length > 4096)
+      // 1024 -> 1020 & 4096 -> 4090 to be on the safe side
+      (post.caption &&
+        getMessageCharacterCountWithoutHtmlTags(updatedText) > 1020) ||
+      (post.text && getMessageCharacterCountWithoutHtmlTags(updatedText) > 4090)
     ) {
       // removing the generated summary (if it was generated at all) from the updated text to avoid hitting the message character limit
       updatedText = `
