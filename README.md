@@ -116,92 +116,128 @@ To run the HyperTAG bot on your machine, follow these steps:
 
 After completing Step 4 of the installation, please take a moment to review the `config.env` file thoroughly. If you haven't done this installation step yet, refer to the [config.env.example](config.env.example) file, which serves as a baseline for your `config.env`.
 
-This file contains a variety of customizable options that can significantly enhance your experience with HyperTAG. While certain settings, such as API keys for Telegram and Gemini, are mandatory, many others are optional and can greatly influence the bot's functionality. We encourage you to adjust these settings according to your preferences to optimize your hosting experience with HyperTAG.
+**Note**: You don't have to change all of the options below to start/use the bot, the necessary ones are only Telegram & Gemini API keys.
 
-<details>
-<summary><b>Click Here for a Summary of Configurable Options in config.env</b> ➡️</summary>
+This file contains a variety of customizable options that can significantly enhance your experience with HyperTAG. While certain settings, such as API keys for Telegram and Gemini, are mandatory, many others are optional and can greatly influence the bot's functionality. We encourage you to adjust these settings according to your preferences to optimize your hosting experience with HyperTAG.
 
 ### Required API Keys
 
-- `TELEGRAM_API_KEY`: API key for interacting with Telegram bot (required).
-- `GEMINI_API_KEYS`: Google Gemini API keys for generating tags and summaries (required). You can provide one or more keys in an array.
+| Key                 | Description                                                    | Required? |
+|---------------------|----------------------------------------------------------------|-----------|
+| `TELEGRAM_API_KEY`  | API key for interacting with Telegram bot.                     | Yes       |
+| `GEMINI_API_KEYS`   | Google Gemini API keys/keys for generating tags and summaries  | Yes       |
 
 ### Node Environment
 
-- `NODE_ENV`: Set to `production` for deployment (`development` by default).
-- `POLLING_INTERVAL_DEV`: Polling interval in development (default: 1000ms).
-- `POLLING_INTERVAL_PROD`: Polling interval in production (default: 3000ms).
+| Variable               | Description                               | Default       |
+|------------------------|-------------------------------------------|---------------|
+| `NODE_ENV`             | Set to `production` for deployment.       | `development` |
+| `POLLING_INTERVAL_DEV` | Polling interval in development (ms).     | `1000`        |
+| `POLLING_INTERVAL_PROD`| Polling interval in production (ms).      | `3000`        |
 
 ### Tag Generation
 
-- `TAG_GENERATION_METHOD`: Select method for tag generation (`1` for Google Gemini, `2` for OpenAI-Compatible, `3` for Ollama, `4` for TextRazor).
-- `OPENROUTER_API_KEYS`: OpenRouter API keys (required for method 2).
-- `TEXTRAZOR_API_KEYS`: TextRazor API keys (required for method 4).
+| Variable               | Description                               | Default          |
+|------------------------|-------------------------------------------|------------------|
+| `TAG_GENERATION_METHOD`| Select tag generation method (`1`-`4`).   | `1` (Gemini API) |
+
+| Methods                                 | Description                                                                                 | API Key Required? | Maximum Free Daily Limit           |
+|-----------------------------------------|---------------------------------------------------------------------------------------------|-------------------|------------------------------------|
+| `1` or `googleGeminiTagGenerator()`     | Works by using google gemini's API Endpoint, fast, accurate, high rate-limit                | Yes               | 1500 (Gemini-Flash)                |
+| `2` or `openAiCompatibleTagGenerator()` | Works by sending the request to a provider that has OpenAi-Compatible API (e.g. OpenRouter) | Yes               | 200 (Any Free Model on OpenRouter) |
+| `3` or `ollamaTagGenerator()`           | Works by using a local-hosted LLM through Ollama                                            | No                | Unlimited                          |
+| `4` or `textRazorTagGenerator()`        | Works by using text Razor's API Endpoint, fast, semi-accurate, medium rate-limit            | Yes               | 500                                |
+
+| Key                    | Description                                        | Required for   |
+|------------------------|----------------------------------------------------|----------------|
+| `OPENROUTER_API_KEYS`  | OpenRouter API key/keys.                           | Method `2`     |
+| `TEXTRAZOR_API_KEYS`   | TextRazor API key/keys.                            | Method `4`     |
 
 ### Summarization
 
-- `ENABLE_SUMMARIZATION`: Enable/disable URL summarization (`true` or `false`).
-- `SUMMARIZATION_METHOD`: Select method for summarization (`1` for Google Gemini, `2` for OpenAI-Compatible, `3` for Ollama).
+| Variable              | Description                                         | Default          |
+|-----------------------|-----------------------------------------------------|------------------|
+| `ENABLE_SUMMARIZATION`| Enable/disable URL summarization.                   | `true`           |
+| `SUMMARIZATION_METHOD`| Select summarization method (`1`-`3`).              | `1` (Gemini API) |
+
+| Methods                                     | Description                                                                                 | API Key Required? | Maximum Free Daily Limit           |
+|---------------------------------------------|---------------------------------------------------------------------------------------------|-------------------|------------------------------------|
+| `1` or `googleGeminiSummaryGenerator()`     | Works by using google gemini's API Endpoint, fast, accurate, high rate-limit                | Yes               | 1500 (Gemini-Flash)                |
+| `2` or `openAiCompatibleSummaryGenerator()` | Works by sending the request to a provider that has OpenAi-Compatible API (e.g. OpenRouter) | Yes               | 200 (Any Free Model on OpenRouter) |
+| `3` or `ollamaSummaryGenerator()`           | Works by using a local-hosted LLM through Ollama                                            | No                | Unlimited                          |
 
 ### Proxy Options (Optional)
 
-- `PROXY_BASE_URL`: Cloudflare worker URL for proxy requests.
-- `ENABLE_URL_PROXY`: Enable proxy for failed URLs.
-- `ENABLE_TELEGRAM_PROXY`: Use proxy for Telegram API requests.
-- `ENABLE_GEMINI_PROXY`: Use proxy for Gemini API requests.
-- `ENABLE_TEXTRAZOR_PROXY`: Use proxy for TextRazor API requests.
-- `ENABLE_OPENROUTER_PROXY`: Use proxy for OpenRouter API requests.
+| Variable                  | Description                                      | Default |
+|---------------------------|--------------------------------------------------|---------|
+| `PROXY_BASE_URL`          | Cloudflare worker URL for proxy requests.        | N/A     |
+| `ENABLE_URL_PROXY`        | Enable proxy for failed URLs.                    | `false` |
+| `ENABLE_TELEGRAM_PROXY`   | Use proxy for Telegram API requests.             | `false` |
+| `ENABLE_GEMINI_PROXY`     | Use proxy for Gemini API requests.               | `false` |
+| `ENABLE_OPENROUTER_PROXY` | Use proxy for OpenRouter API requests.           | `false` |
+| `ENABLE_TEXTRAZOR_PROXY`  | Use proxy for TextRazor API requests.            | `false` |
 
 ### Admin & VIP Configuration
 
-- `BOT_ADMIN_USER_ID`: Telegram ID of the bot admin (required for admin commands such as /broadcast and /stats). (optional)
-- `VIP_USER_IDS`: List of Telegram IDs of users with VIP access, e.g., `[user_id1, user_id2]`. (optional)
+| Variable             | Description                                          | Default |
+|----------------------|------------------------------------------------------|---------|
+| `BOT_ADMIN_USER_ID`  | Telegram ID of the bot admin (optional).             | N/A     |
+| `VIP_USER_IDS`       | List of Telegram IDs for VIP users (optional).       | N/A     |
 
 ### Rate Limiting
 
-- `MAX_CONNECTED_CHANNELS`: Max channels for regular users (default: 1).
-- `MAX_CONNECTED_CHANNELS_VIP`: Max channels for VIP users (default: 5).
+| Variable                      | Description                                   | Default |
+|-------------------------------|-----------------------------------------------|---------|
+| `MAX_CONNECTED_CHANNELS`      | Max channels for regular users.               | `1`     |
+| `MAX_CONNECTED_CHANNELS_VIP`  | Max channels for VIP users.                   | `5`     |
 
-#### Rate Limits for Private Chats
+#### Private Chats Rate Limits
 
-- `RATE_LIMIT_PRIVATE_DEV`: Rate limit for private chats in development (default: `100` requests/day).
-- `RATE_LIMIT_PRIVATE_PROD`: Rate limit for private chats in production (default: `10` requests/day).
-- `RATE_LIMIT_PRIVATE_VIP_DEV`: Rate limit for VIP users in development (default: `100` requests/day).
-- `RATE_LIMIT_PRIVATE_VIP_PROD`: Rate limit for VIP users in production (default: `50` requests/day).
+| Variable                      | Description                                   | Default |
+|-------------------------------|-----------------------------------------------|---------|
+| `RATE_LIMIT_PRIVATE_DEV`      | Rate limit in development (requests/day).     | `10`    |
+| `RATE_LIMIT_PRIVATE_PROD`     | Rate limit in production (requests/day).      | `10`    |
+| `RATE_LIMIT_PRIVATE_VIP_DEV`  | VIP rate limit in development (requests/day). | `100`   |
+| `RATE_LIMIT_PRIVATE_VIP_PROD` | VIP rate limit in production (requests/day).  | `50`    |
 
-#### Rate Limits for Channel Posts
+#### Channel Posts Rate Limits
 
-- `RATE_LIMIT_CHANNEL_DEV`: Rate limit for channel posts in development (default: `100` requests/day).
-- `RATE_LIMIT_CHANNEL_PROD`: Rate limit for channel posts in production (default: `10` requests/day).
-- `RATE_LIMIT_CHANNEL_VIP_DEV`: Rate limit for VIP users in channel posts (default: `100` requests/day).
-- `RATE_LIMIT_CHANNEL_VIP_PROD`: Rate limit for VIP users in channel posts (default: `25` requests/day).
+| Variable                      | Description                                   | Default |
+|-------------------------------|-----------------------------------------------|---------|
+| `RATE_LIMIT_CHANNEL_DEV`      | Rate limit in development (requests/day).     | `10`    |
+| `RATE_LIMIT_CHANNEL_PROD`     | Rate limit in production (requests/day).      | `10`    |
+| `RATE_LIMIT_CHANNEL_VIP_DEV`  | VIP rate limit in development (requests/day). | `100`   |
+| `RATE_LIMIT_CHANNEL_VIP_PROD` | VIP rate limit in production (requests/day).  | `25`    |
 
 ### Bot Settings
 
-- `ENABLE_TRANSLATION`: Enable translation feature (`true` or `false`).
-- `ENABLE_SECONDARY_CONTEXT_EXTENSION`: Enable fallback context extender using the Cheerio library (`true` or `false`).
-- `NUMBER_OF_TAGS_TO_DISPLAY_IN_PRIVATE_CHAT`: Number of tags to display in private chats (default: 10).
-- `NUMBER_OF_TAGS_TO_DISPLAY_IN_CHANNEL`: Number of tags to display in channels (default: 5).
-- `NUMBER_OF_URLS_TO_ANALYZE_FROM_EACH_REQUEST`: URLs to fetch for context analysis (default: 2).
-- `NUMBER_OF_CHARACTERS_TO_RETRIEVE_FROM_EACH_URL`: Number of characters to retrieve from each URL. (default: 15000)
-- `MAX_URL_SIZE`: Maximum allowed URL size for fetching in bytes (e.g., `10485760` for 10MB).
+| Variable                                         | Description                             | Default    |
+|--------------------------------------------------|-----------------------------------------|------------|
+| `ENABLE_TRANSLATION`                             | Enable translation feature.             | `true`     |
+| `ENABLE_SECONDARY_CONTEXT_EXTENSION`             | Enable fallback context extension       | `true`     |
+| `NUMBER_OF_TAGS_TO_DISPLAY_IN_PRIVATE_CHAT`      | Tags to display in private chats.       | `10`       |
+| `NUMBER_OF_TAGS_TO_DISPLAY_IN_CHANNEL`           | Tags to display in channels.            | `5`        |
+| `NUMBER_OF_URLS_TO_ANALYZE_FROM_EACH_REQUEST`    | URLs to fetch for analysis.             | `2`        |
+| `NUMBER_OF_CHARACTERS_TO_RETRIEVE_FROM_EACH_URL` | Characters to retrieve.                 | `15000`    |
+| `MAX_URL_SIZE`                                   | Maximum URL size in bytes (e.g., 10MB). | `10485760` |
 
 ### Bot Text Placeholders
 
-- `SUPPORT_ACCOUNT_HANDLE`: Telegram handle for support (e.g., `@mostafa_abbac`).
-- `BOT_NAME`: Name of the bot (e.g., `HyperTAG`).
-- `BOT_HANDLE`: Telegram handle of the bot (e.g., `@HyperTag_bot`).
-- `BOT_LINK`: Direct link to the bot (e.g., `t.me/HyperTag_bot`).
-- `BOT_SIGNATURE`: Text that will be shown at the end of messages edited by HyperTAG in channels (e.g., `@HyprTAG`)
+| Variable                 | Description                                       | Example             |
+|--------------------------|---------------------------------------------------|---------------------|
+| `SUPPORT_ACCOUNT_HANDLE` | Telegram handle for support.                      | `@mostafa_abbac`    |
+| `BOT_NAME`               | Name of the bot.                                  | `HyperTAG`          |
+| `BOT_HANDLE`             | Telegram handle of the bot.                       | `@HyperTAG_bot`     |
+| `BOT_LINK`               | Direct link to the bot.                           | `t.me/HyperTAG_bot` |
+| `BOT_SIGNATURE`          | Text at the end of messages edited by HyperTAG.   | `@HyprTAG`          |
 
 ### Sponsor Channel Configuration
 
-- `ENABLE_SPONSOR_CHANNEL`: Enable mandatory sponsor channel for users (`true`/`false`).
-- `SPONSOR_CHANNEL_ID`: The Telegram channel ID that users must join before using the bot.  
-  Example: `-1001374364132`.
-- `SPONSOR_CHANNEL_LINK`: Direct link or handle for users to join the sponsor channel (e.g., `t.me/+0ifSLk5nQJ43ODY8`).
-
-</details>
+| Variable                 | Description                                       | Example                  |
+|--------------------------|---------------------------------------------------|--------------------------|
+| `ENABLE_SPONSOR_CHANNEL` | Enable mandatory sponsor channel for users.       | `true`                   |
+| `SPONSOR_CHANNEL_ID`     | Telegram channel ID to join before using the bot. | `-1001374364132`         |
+| `SPONSOR_CHANNEL_LINK`   | Direct link/handle for sponsor channel.           | `t.me/+0ifSLk5nQJ43ODY8` |
 
 ## Proxy Feature
 
