@@ -253,66 +253,6 @@ export async function googleGeminiSummaryGenerator(prompt, src) {
 // -------------------------------------------------------------------------
 // -------------------------------------------------------------------------
 
-// Function to generate a response using OpenAI-Compatible API (We're using OpenRouter in here which has a compatible OpenAI API)
-// export async function openAiCompatibleSummaryGenerator(prompt, src) {
-//   return limit(async () => {
-//     const systemPrompt = getSystemPrompt(src);
-
-//     try {
-//       // Randomly select one API key from the array of keys
-//       const randomApiKey = await randomApiKeySelector(config.openRouter);
-
-//       // Initialize OpenAI client using OpenRouter credentials
-//       const openai = new OpenAI({
-//         apiKey: randomApiKey, // stored in config.env
-//         baseURL: `${
-//           config.proxyOptions.openRouterProxy
-//             ? `${config.proxyOptions.proxyBaseUrl}`
-//             : ``
-//         }${config.openRouter.apiUrl}`,
-//       });
-
-//       const startTime = performance.now(); // Start timer
-
-//       // Create a completion request for the openRouter through OpenAI Library
-//       // Current Rate Limit for free models (as of 2024/09): 200 RPD (Requests per day)
-//       // Only select Models that are explicitly said they are free, otherwise you will be charged
-//       const result = await openai.chat.completions.create({
-//         // see the list of available models at https://openrouter.ai/models
-//         // Only select Models that are explicitly stated they are free, otherwise you will be charged
-
-//         model: "google/gemini-pro-1.5-exp",
-//         // model: "meta-llama/llama-3.1-405b-instruct:free",
-//         // model: "meta-llama/llama-3.1-8b-instruct:free",
-
-//         messages: [
-//           { role: "system", content: systemPrompt }, // Send the system prompt first
-//           { role: "user", content: prompt }, // User input as the content to summarize
-//         ],
-//       });
-
-//       const endTime = performance.now(); // End timer
-
-//       // extracting the response
-//       const fullResponse = result?.choices[0]?.message.content.trim();
-
-//       // Log performance metrics
-//       logMetrics({
-//         method: "online",
-//         model: result.model,
-//         prompt_eval_count: result.usage?.prompt_tokens,
-//         eval_count: result.usage?.completion_tokens,
-//         elapsedTime: ((endTime - startTime) / 1000).toFixed(2),
-//       });
-
-//       return fullResponse;
-//     } catch (error) {
-//       logger.error("Error communicating with OpenAI-Compatible API:", error);
-//       return null;
-//     }
-//   });
-// }
-
 // Function to generate a response using OpenAI-Compatible API with retry (We're using OpenRouter in here which has a compatible OpenAI API)
 export async function openAiCompatibleSummaryGenerator(prompt, src) {
   return limit(async () => {
@@ -337,15 +277,13 @@ export async function openAiCompatibleSummaryGenerator(prompt, src) {
 
       // Create a completion request for the openRouter through OpenAI Library
       // Current Rate Limit for free models (as of 2024/09): 200 RPD (Requests per day)
-      // Only select Models that are explicitly said they are free, otherwise you will be charged
       const result = await openai.chat.completions.create({
         // see the list of available models at https://openrouter.ai/models
         // Only select Models that are explicitly stated they are free, otherwise you will be charged
 
-        model: "google/gemini-pro-1.5-exp",
         // model: "meta-llama/llama-3.1-405b-instruct:free",
         // model: "meta-llama/llama-3.1-8b-instruct:free",
-
+        model: "google/gemini-pro-1.5-exp",
         messages: [
           { role: "system", content: systemPrompt }, // Send the system prompt first
           { role: "user", content: prompt }, // User input as the content to summarize
@@ -385,64 +323,64 @@ export async function ollamaSummaryGenerator(prompt, src) {
   const systemPrompt = getSystemPrompt(src); // Selecting system prompt based on source
 
   try {
-    const startTime = performance.now(); // start timer
+    return await retryWithDelay(async () => {
+      const startTime = performance.now(); // start timer
 
-    // Create a request using the ollama.generate method with streaming
-    // see the list of available models at https://ollama.com/library
-    const stream = await ollama.generate({
-      // model: "qwen2.5:0.5b-instruct-q4_K_M", // not-accurate  | fast
-      model: "llama3.2:1b-instruct-q4_K_M", //     semi-accurate | still fast
-      // model: "llama3.2:3b-instruct-q4_K_M",  // accurate      | slow-ish
-      // model: "llama3.1:8b-instruct-q4_K_M",  // more accurate | slow
-      system: systemPrompt, // System message with guidelines
-      prompt, // text to summarize
-      stream: true, // Enable streaming
-      options: {
-        seed: 42,
-        temperature: 0.3,
-        // num_predict: 400, // Cap the number of response tokens
-        num_ctx: 4096, // Context length (prompt + response), higher uses more RAM
-        num_keep: 1, // Model kept loaded for future requests (in minutes)
-        num_thread: 7, // (Number of all threades / 2) is the optimum, e.g. for an 8 thread cpu, set this to 4
-      },
-    });
-
-    let fullResponse = "";
-    let lastChunk = null;
-
-    // Stream processing with async loop
-    for await (const chunk of stream) {
-      process.stdout.write(chunk.response); // Output each chunk as it streams
-      fullResponse += chunk.response; // Append to the full response
-      lastChunk = chunk; // Keep the last chunk for metadata logging
-    }
-    const endTime = performance.now(); // end timer
-
-    // Ensure the last chunk contains the necessary metadata
-    if (lastChunk) {
-      const {
-        model,
-        load_duration,
-        prompt_eval_count,
-        prompt_eval_duration,
-        eval_count,
-        eval_duration,
-      } = lastChunk; // Extract metrics from the last chunk
-
-      // Log the metrics
-      logMetrics({
-        method: "offline",
-        model,
-        load_duration,
-        prompt_eval_count,
-        prompt_eval_duration,
-        eval_count,
-        eval_duration,
-        elapsedTime: ((endTime - startTime) / 1000).toFixed(2),
+      // Create a request using the ollama.generate method with streaming
+      // see the list of available models at https://ollama.com/library
+      const stream = await ollama.generate({
+        // model: "qwen2.5:0.5b-instruct-q4_K_M", // not-accurate  | fast
+        model: "llama3.2:1b-instruct-q4_K_M", //     semi-accurate | still fast
+        // model: "llama3.2:3b-instruct-q4_K_M",  // accurate      | slow-ish
+        // model: "llama3.1:8b-instruct-q4_K_M",  // more accurate | slow
+        system: systemPrompt, // System message with guidelines
+        prompt, // text to summarize
+        stream: true, // Enable streaming
+        options: {
+          temperature: 0.3,
+          num_ctx: 4096, // Context length (prompt + response), higher uses more RAM
+          num_keep: 1, // Model kept loaded for future requests (in minutes)
+          num_thread: 7, // (Number of all threades / 2) is the optimum, e.g. for an 8 thread cpu, set this to 4
+        },
       });
-    }
 
-    return fullResponse;
+      let fullResponse = "";
+      let lastChunk = null;
+
+      // Stream processing with async loop
+      for await (const chunk of stream) {
+        process.stdout.write(chunk.response); // Output each chunk as it streams
+        fullResponse += chunk.response; // Append to the full response
+        lastChunk = chunk; // Keep the last chunk for metadata logging
+      }
+      const endTime = performance.now(); // end timer
+
+      // Ensure the last chunk contains the necessary metadata
+      if (lastChunk) {
+        const {
+          model,
+          load_duration,
+          prompt_eval_count,
+          prompt_eval_duration,
+          eval_count,
+          eval_duration,
+        } = lastChunk; // Extract metrics from the last chunk
+
+        // Log the metrics
+        logMetrics({
+          method: "offline",
+          model,
+          load_duration,
+          prompt_eval_count,
+          prompt_eval_duration,
+          eval_count,
+          eval_duration,
+          elapsedTime: ((endTime - startTime) / 1000).toFixed(2),
+        });
+      }
+
+      return fullResponse;
+    });
   } catch (error) {
     logger.error("Error communicating with Ollama:", error);
     return null;

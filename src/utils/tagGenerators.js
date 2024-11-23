@@ -1,15 +1,41 @@
 // src/services/textRazorServices.js
 
 import pLimit from "p-limit";
+import randomApiKeySelector from "./randomApiKeySelector.js";
+
+// to use with googleGeminiTagGenerator()
 import axios from "axios";
 import applyRetryMechanism from "./retryMechanism.js";
-import randomApiKeySelector from "./randomApiKeySelector.js";
+
+// to use with openAiCompatibleTagGenerator()
+import { retryWithDelay } from "./retryMechanism.js";
+import OpenAI from "openai";
+
+// to use with ollamaTagGenerator()
+import ollama from "ollama";
+
 import logMetrics from "./LLMLogger.js";
 import config from "../config/index.js";
 import logger from "./logger.js";
 
-// Define a limit of 2 concurrent operations for Google Gemini
-const googleGeminiLimit = pLimit(2);
+const baseSystemPrompt = `You are a hashtag generation assistant. Based on the provided text, generate a list of exactly 15 relevant, trending, and popular hashtags. 
+Your output must strictly conform to JSON format.
+Follow this schema:
+{
+  "hashtags": ["#Example1", "#Example2", "#Example3", "..."]
+}
+Rules:
+1. Always respond in JSON format, strictly following the schema above.
+2. Include exactly 15 hashtags in the "hashtags" array.
+3. Do not include any additional text, explanations, or formatting, only provide the JSON object.`;
+
+// Function to get the final system prompt
+function getSystemPrompt() {
+  return baseSystemPrompt;
+}
+
+// Define a limit of 2 concurrent operations for Google Gemini & OpenAi-Compatible APIs
+const limit = pLimit(2);
 
 // Function to generate tags using Google Gemini -- v1beta REST API which supports system prompts natively - we can use proxy in this solution
 // There is a high chance of "v1beta API ENDPOINT" become deprecated and unusable in the future, in that case,
@@ -17,13 +43,8 @@ const googleGeminiLimit = pLimit(2);
 // Documentation from google on how to use system instructions in Rest API Endpoint (in case of needing to adapt this function with future API versions):
 // https://github.com/google-gemini/cookbook/blob/main/quickstarts/rest/JSON_mode_REST.ipynbs
 export async function googleGeminiTagGenerator(prompt) {
-  return googleGeminiLimit(async () => {
-    const systemPrompt = `
-    You are a helpful assistant that generates hashtags based on the context of the provided text.
-    Your output should always be in JSON format.
-    Generate a list of the most relevant, trending and popular hashtags related to the topic, keywords, and overall meaning of the provided text.
-    Ensure the hashtags follow this JSON schema: {"type": "object", "properties": {"hashtags": {"type": "array", "items": {"type": "string"}}}}.
-    Generate 15 hashtags and Return only the hashtags as JSON.`;
+  return limit(async () => {
+    const systemPrompt = getSystemPrompt();
 
     try {
       // See the list of available models and their rate limits at https://ai.google.dev/gemini-api/docs/models/gemini
@@ -162,6 +183,179 @@ export async function googleGeminiTagGenerator(prompt) {
       return null;
     }
   });
+}
+
+export async function openAiCompatibleTagGenerator(prompt) {
+  return limit(async () => {
+    const systemPrompt = getSystemPrompt();
+
+    try {
+      // Use retryWithDelay for the API request and parsing logic
+      return await retryWithDelay(async () => {
+        // Randomly select one API key from the array of keys
+        const randomApiKey = await randomApiKeySelector(config.openRouter);
+
+        // Initialize OpenAI client using OpenRouter credentials
+        const openai = new OpenAI({
+          apiKey: randomApiKey, // stored in config.env
+          baseURL: `${
+            config.proxyOptions.openRouterProxy
+              ? `${config.proxyOptions.proxyBaseUrl}`
+              : ``
+          }${config.openRouter.apiUrl}`,
+        });
+
+        const startTime = performance.now(); // Start timer
+
+        // Retry logic for JSON parsing
+        let parsedResponse, cleanedTags;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            // Create a completion request for the openRouter through OpenAI Library
+            const result = await openai.chat.completions.create({
+              // model: "meta-llama/llama-3.1-405b-instruct:free",
+              // model: "meta-llama/llama-3.1-8b-instruct:free",
+              model: "google/gemini-pro-1.5-exp",
+              response_format: { type: "json_object" },
+              messages: [
+                { role: "system", content: systemPrompt }, // Send the system prompt first
+                { role: "user", content: prompt }, // User input to analyze for hashtags
+              ],
+            });
+
+            const endTime = performance.now(); // End timer
+
+            const fullResponse = result?.choices[0]?.message.content.trim(); // Extract the response
+            console.log(result?.choices[0]?.message.content.trim());
+
+            // Parse JSON response and validate structure
+            parsedResponse = JSON.parse(fullResponse);
+            if (!Array.isArray(parsedResponse.hashtags)) {
+              throw new Error(
+                "Parsed response does not contain a valid hashtags array."
+              );
+            }
+
+            // Extract and clean the hashtags
+            const hashtagsArray = parsedResponse.hashtags;
+            cleanedTags = cleanAndFilterTags(hashtagsArray);
+
+            logMetrics({
+              method: "online",
+              model: result.model,
+              prompt_eval_count: result.usage?.prompt_tokens,
+              eval_count: result.usage?.completion_tokens,
+              elapsedTime: ((endTime - startTime) / 1000).toFixed(2),
+            });
+
+            break; // Exit loop if parsing was successful
+          } catch (parseError) {
+            logger.error(
+              `Attempt ${attempt + 1}: Error parsing JSON response, retrying...`
+            );
+            if (attempt === 2) {
+              throw new Error(
+                "Failed to parse JSON response after multiple attempts."
+              );
+            }
+          }
+        }
+
+        return cleanedTags;
+      });
+    } catch (error) {
+      logger.error(
+        "Error communicating with OpenAI-Compatible API:",
+        error.response?.data || error.message
+      );
+
+      return null;
+    }
+  });
+}
+
+// Function to generate tags using Ollama API with retry logic
+export async function ollamaTagGenerator(prompt) {
+  const systemPrompt = getSystemPrompt();
+
+  try {
+    return await retryWithDelay(async () => {
+      const startTime = performance.now(); // Start timer
+
+      // Create a request using the ollama.generate method with streaming
+      const stream = await ollama.generate({
+        // model: "qwen2.5:0.5b-instruct-q4_K_M", // not-accurate | fast
+        model: "llama3.2:1b-instruct-q4_K_M", // semi-accurate | still fast
+        // model: "llama3.2:3b-instruct-q4_K_M", // accurate | slow-ish
+        // model: "llama3.1:8b-instruct-q4_K_M", // more accurate | slow
+        format: "json",
+        system: systemPrompt, // System message with guidelines
+        prompt, // Text to analyze for hashtags
+        stream: true, // Enable streaming
+        options: {
+          temperature: 0.3,
+          num_ctx: 4096, // Context length (prompt + response)
+          num_keep: 1, // Keep model loaded for future requests
+          num_thread: 7, // Optimize for available CPU threads
+        },
+      });
+
+      let fullResponse = "";
+      let lastChunk = null;
+
+      // Process stream and build response
+      for await (const chunk of stream) {
+        process.stdout.write(chunk.response); // Output each chunk
+        fullResponse += chunk.response; // Append to full response
+        lastChunk = chunk; // Keep the last chunk for metadata logging
+      }
+
+      const endTime = performance.now(); // End timer
+
+      // Ensure the last chunk contains the necessary metadata
+      if (lastChunk) {
+        const {
+          model,
+          load_duration,
+          prompt_eval_count,
+          prompt_eval_duration,
+          eval_count,
+          eval_duration,
+        } = lastChunk; // Extract metrics from the last chunk
+
+        // Log the metrics
+        logMetrics({
+          method: "offline",
+          model,
+          load_duration,
+          prompt_eval_count,
+          prompt_eval_duration,
+          eval_count,
+          eval_duration,
+          elapsedTime: ((endTime - startTime) / 1000).toFixed(2),
+        });
+      }
+
+      let parsedResponse, cleanedTags;
+
+      // Parse JSON response
+      parsedResponse = JSON.parse(fullResponse);
+      if (!Array.isArray(parsedResponse.hashtags)) {
+        throw new Error(
+          "Parsed response does not contain a valid hashtags array."
+        );
+      }
+
+      // Extract and clean hashtags
+      const hashtagsArray = parsedResponse.hashtags;
+      cleanedTags = cleanAndFilterTags(hashtagsArray);
+
+      return cleanedTags;
+    });
+  } catch (error) {
+    logger.error("Error communicating with Ollama:", error);
+    return null;
+  }
 }
 
 // Define a limit of 2 concurrent operations to respect the TextRazor API's rate limits.

@@ -2,6 +2,8 @@
 
 import {
   googleGeminiTagGenerator,
+  openAiCompatibleTagGenerator,
+  ollamaTagGenerator,
   textRazorTagGenerator,
 } from "./tagGenerators.js";
 import {
@@ -31,11 +33,19 @@ export async function tagGenerator(text, urlContents) {
   let tags = null;
   switch (config.tagGenerationSettings.tagGenerationMethod) {
     case 1:
-      // generating tags from the whole message context using gemini api
+      // generating tags from the whole message context using gemini API
       tags = await googleGeminiTagGenerator(combinedText);
       break;
     case 2:
-      // generating tags from the whole message context using textRazor api
+      // generating tags from the whole message context using using an online provider (openRouter.ai) with OpenAI-Compatible API
+      tags = await openAiCompatibleTagGenerator(combinedText);
+      break;
+    case 3:
+      // Generating tags from the whole message context using a local-hosted LLM with ollama API
+      tags = await ollamaTagGenerator(combinedText);
+      break;
+    case 4:
+      // generating tags from the whole message context using textRazor API
       tags = await textRazorTagGenerator(combinedText);
       break;
     default:
@@ -68,7 +78,7 @@ export async function summaryGenerator(inputText) {
         summary = await openAiCompatibleSummaryGenerator(translatedText);
         break;
       case 3:
-        // // Generating a summary using a local-hosted LLM with ollama API
+        // Generating a summary using a local-hosted LLM with ollama API
         summary = await ollamaSummaryGenerator(translatedText);
         break;
       default:
