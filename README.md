@@ -126,24 +126,38 @@ This file contains a variety of customizable options that can significantly enha
 
 ### Required API Keys
 
+<div align="center">
+  
 | Key                 | Description                                                    | Required? |
 |---------------------|----------------------------------------------------------------|-----------|
 | `TELEGRAM_API_KEY`  | API key for interacting with Telegram bot.                     | Yes       |
 | `GEMINI_API_KEYS`   | Google Gemini API keys/keys for generating tags and summaries  | Yes       |
 
+</div>
+
 ### Node Environment
 
+<div align="center">
+  
 | Variable               | Description                               | Default       |
 |------------------------|-------------------------------------------|---------------|
 | `NODE_ENV`             | Set to `production` for deployment.       | `development` |
 | `POLLING_INTERVAL_DEV` | Polling interval in development (ms).     | `1000`        |
 | `POLLING_INTERVAL_PROD`| Polling interval in production (ms).      | `3000`        |
 
+</div>
+
 ### Tag Generation
+
+<div align="center">
 
 | Variable               | Description                               | Default          |
 |------------------------|-------------------------------------------|------------------|
 | `TAG_GENERATION_METHOD`| Select tag generation method (`1`-`4`).   | `1` (Gemini API) |
+
+</div>
+
+<div align="center">
 
 | Methods                                 | Description                                                                                 | API Key Required? | Maximum Free Daily Limit           |
 |-----------------------------------------|---------------------------------------------------------------------------------------------|-------------------|------------------------------------|
@@ -152,17 +166,29 @@ This file contains a variety of customizable options that can significantly enha
 | `3` or `ollamaTagGenerator()`           | Works by using a local-hosted LLM through Ollama                                            | No                | Unlimited                          |
 | `4` or `textRazorTagGenerator()`        | Works by using text Razor's API Endpoint, fast, semi-accurate, medium rate-limit            | Yes               | 500                                |
 
+</div>
+
+<div align="center">
+
 | Key                    | Description                                        | Required for   |
 |------------------------|----------------------------------------------------|----------------|
 | `OPENROUTER_API_KEYS`  | OpenRouter API key/keys.                           | Method `2`     |
 | `TEXTRAZOR_API_KEYS`   | TextRazor API key/keys.                            | Method `4`     |
 
+</div>
+
 ### Summarization
+
+<div align="center">
 
 | Variable              | Description                                         | Default          |
 |-----------------------|-----------------------------------------------------|------------------|
 | `ENABLE_SUMMARIZATION`| Enable/disable URL summarization.                   | `true`           |
 | `SUMMARIZATION_METHOD`| Select summarization method (`1`-`3`).              | `1` (Gemini API) |
+
+</div>
+
+<div align="center">
 
 | Methods                                     | Description                                                                                 | API Key Required? | Maximum Free Daily Limit           |
 |---------------------------------------------|---------------------------------------------------------------------------------------------|-------------------|------------------------------------|
@@ -170,7 +196,11 @@ This file contains a variety of customizable options that can significantly enha
 | `2` or `openAiCompatibleSummaryGenerator()` | Works by sending the request to a provider that has OpenAi-Compatible API (e.g. OpenRouter) | Yes               | 200 (Any Free Model on OpenRouter) |
 | `3` or `ollamaSummaryGenerator()`           | Works by using a local-hosted LLM through Ollama                                            | No                | Unlimited                          |
 
+</div>
+
 ### Proxy Options (Optional)
+
+<div align="center">
 
 | Variable                  | Description                                      | Default |
 |---------------------------|--------------------------------------------------|---------|
@@ -181,21 +211,33 @@ This file contains a variety of customizable options that can significantly enha
 | `ENABLE_OPENROUTER_PROXY` | Use proxy for OpenRouter API requests.           | `false` |
 | `ENABLE_TEXTRAZOR_PROXY`  | Use proxy for TextRazor API requests.            | `false` |
 
+</div>
+
 ### Admin & VIP Configuration
+
+<div align="center">
 
 | Variable             | Description                                          | Default |
 |----------------------|------------------------------------------------------|---------|
 | `BOT_ADMIN_USER_ID`  | Telegram ID of the bot admin (optional).             | N/A     |
 | `VIP_USER_IDS`       | List of Telegram IDs for VIP users (optional).       | N/A     |
 
+</div>
+
 ### Rate Limiting
+
+<div align="center">
 
 | Variable                      | Description                                   | Default |
 |-------------------------------|-----------------------------------------------|---------|
 | `MAX_CONNECTED_CHANNELS`      | Max channels for regular users.               | `1`     |
 | `MAX_CONNECTED_CHANNELS_VIP`  | Max channels for VIP users.                   | `5`     |
 
+</div>
+
 #### Private Chats Rate Limits
+
+<div align="center">
 
 | Variable                      | Description                                   | Default |
 |-------------------------------|-----------------------------------------------|---------|
@@ -204,7 +246,11 @@ This file contains a variety of customizable options that can significantly enha
 | `RATE_LIMIT_PRIVATE_VIP_DEV`  | VIP rate limit in development (requests/day). | `100`   |
 | `RATE_LIMIT_PRIVATE_VIP_PROD` | VIP rate limit in production (requests/day).  | `50`    |
 
+</div>
+
 #### Channel Posts Rate Limits
+
+<div align="center">
 
 | Variable                      | Description                                   | Default |
 |-------------------------------|-----------------------------------------------|---------|
@@ -213,7 +259,11 @@ This file contains a variety of customizable options that can significantly enha
 | `RATE_LIMIT_CHANNEL_VIP_DEV`  | VIP rate limit in development (requests/day). | `100`   |
 | `RATE_LIMIT_CHANNEL_VIP_PROD` | VIP rate limit in production (requests/day).  | `25`    |
 
+</div>
+
 ### Bot Settings
+
+<div align="center">
 
 | Variable                                         | Description                             | Default    |
 |--------------------------------------------------|-----------------------------------------|------------|
@@ -225,7 +275,11 @@ This file contains a variety of customizable options that can significantly enha
 | `NUMBER_OF_CHARACTERS_TO_RETRIEVE_FROM_EACH_URL` | Characters to retrieve.                 | `15000`    |
 | `MAX_URL_SIZE`                                   | Maximum URL size in bytes (e.g., 10MB). | `10485760` |
 
+</div>
+
 ### Bot Text Placeholders
+
+<div align="center">
 
 | Variable                 | Description                                       | Example             |
 |--------------------------|---------------------------------------------------|---------------------|
@@ -235,13 +289,19 @@ This file contains a variety of customizable options that can significantly enha
 | `BOT_LINK`               | Direct link to the bot.                           | `t.me/HyperTAG_bot` |
 | `BOT_SIGNATURE`          | Text at the end of messages edited by HyperTAG.   | `@HyprTAG`          |
 
+</div>
+
 ### Sponsor Channel Configuration
+
+<div align="center">
 
 | Variable                 | Description                                       | Example                  |
 |--------------------------|---------------------------------------------------|--------------------------|
 | `ENABLE_SPONSOR_CHANNEL` | Enable mandatory sponsor channel for users.       | `true`                   |
 | `SPONSOR_CHANNEL_ID`     | Telegram channel ID to join before using the bot. | `-1001374364132`         |
 | `SPONSOR_CHANNEL_LINK`   | Direct link/handle for sponsor channel.           | `t.me/+0ifSLk5nQJ43ODY8` |
+
+</div>
 
 ## Proxy Feature
 
