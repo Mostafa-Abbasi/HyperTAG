@@ -37,6 +37,7 @@ import { retryWithDelay } from "./retryMechanism.js";
 
 // to use with ollamaSummaryGenerator()
 import ollama from "ollama";
+import os from "os";
 
 import logMetrics from "./LLMLogger.js";
 import config from "../config/index.js";
@@ -323,6 +324,10 @@ export async function ollamaSummaryGenerator(prompt, src) {
   const systemPrompt = getSystemPrompt(src); // Selecting system prompt based on source
 
   try {
+    // Get the number of logical CPU cores
+    const totalCores = os.cpus().length;
+    const optimalThreads = Math.floor(totalCores / 2); // Use half of the available cores
+
     return await retryWithDelay(async () => {
       const startTime = performance.now(); // start timer
 
@@ -340,7 +345,7 @@ export async function ollamaSummaryGenerator(prompt, src) {
           temperature: 0.3,
           num_ctx: 4096, // Context length (prompt + response), higher uses more RAM
           num_keep: 1, // Model kept loaded for future requests (in minutes)
-          num_thread: 7, // (Number of all threades / 2) is the optimum, e.g. for an 8 thread cpu, set this to 4
+          num_thread: optimalThreads, // Dynamically set number of threads
         },
       });
 

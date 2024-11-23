@@ -13,6 +13,7 @@ import OpenAI from "openai";
 
 // to use with ollamaTagGenerator()
 import ollama from "ollama";
+import os from "os";
 
 import logMetrics from "./LLMLogger.js";
 import config from "../config/index.js";
@@ -279,6 +280,10 @@ export async function ollamaTagGenerator(prompt) {
   const systemPrompt = getSystemPrompt();
 
   try {
+    // Get the number of logical CPU cores
+    const totalCores = os.cpus().length;
+    const optimalThreads = Math.floor(totalCores / 2); // Use half of the available cores
+
     return await retryWithDelay(async () => {
       const startTime = performance.now(); // Start timer
 
@@ -296,7 +301,7 @@ export async function ollamaTagGenerator(prompt) {
           temperature: 0.3,
           num_ctx: 4096, // Context length (prompt + response)
           num_keep: 1, // Keep model loaded for future requests
-          num_thread: 7, // Optimize for available CPU threads
+          num_thread: optimalThreads, // Dynamically set number of threads
         },
       });
 
