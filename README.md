@@ -79,7 +79,7 @@ Both the Telegram and Gemini API keys are mandatory for the bot to function, and
 
 ## Installation
 
-To run the HyperTAG bot on your machine, follow these steps:
+To set up HyperTAG for the first time, follow the steps below. If you are upgrading from a previous version, please refer to the [**Upgrade Guide**](docs/Upgrading-to-a-newer-version.md) for detailed instructions on updating your instance safely.
 
 1. **Clone the repository**:
 
@@ -104,13 +104,17 @@ To run the HyperTAG bot on your machine, follow these steps:
 
 4. **Set Up Environment Variables**:
 
-- open the newly created `config.env` file and fill in the required environment variables (`TELEGRAM_API_KEY` and `GEMINI_API_KEY`). You can refer to [Prerequisites](#prerequisites) section for how to get the keys.
+- open the newly created `config.env` file and fill in the required environment variables (`TELEGRAM_API_KEY` and `GEMINI_API_KEY`). Refer to the [Prerequisites](#prerequisites) section for instructions on obtaining the keys.
 
 5. **Run the bot**:
 
    ```bash
    npm start
    ```
+
+## Upgrading HyperTAG
+
+If you're running/hosting an older version of HyperTAG and would like to upgrade to the latest release, please refer to the [**HyperTAG Upgrade Guide**](docs/Upgrading-to-a-newer-version.md). This guide provides step-by-step instructions to ensure a smooth transition without losing your current configurations or data.
 
 ## Craft Your Ideal Bot by Customizing HyperTAG’s Config File
 
