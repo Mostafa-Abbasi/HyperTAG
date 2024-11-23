@@ -281,13 +281,15 @@ This file contains a variety of customizable options that can significantly enha
 
 <div align="center">
 
-| Variable                 | Description                                       | Example             |
-|--------------------------|---------------------------------------------------|---------------------|
-| `SUPPORT_ACCOUNT_HANDLE` | Telegram handle for support.                      | `@mostafa_abbac`    |
-| `BOT_NAME`               | Name of the bot.                                  | `HyperTAG`          |
-| `BOT_HANDLE`             | Telegram handle of the bot.                       | `@HyperTAG_bot`     |
-| `BOT_LINK`               | Direct link to the bot.                           | `t.me/HyperTAG_bot` |
-| `BOT_SIGNATURE`          | Text at the end of messages edited by HyperTAG.   | `@HyprTAG`          |
+| Variable                 | Description                                       | Example                              |
+|--------------------------|---------------------------------------------------|--------------------------------------|
+| `SUPPORT_ACCOUNT_HANDLE` | Telegram handle for support.                      | `@mostafa_abbac`                     |
+| `BOT_NAME`               | Name of the bot.                                  | `HyperTAG`                           |
+| `BOT_HANDLE`             | Telegram handle of the bot.                       | `@HyperTAG_bot`                      |
+| `BOT_LINK`               | Direct link to the bot.                           | `t.me/HyperTAG_bot`                  |
+| `BOT_SIGNATURE`          | Text at the end of messages edited by HyperTAG.   | `@HyprTAG`                           |
+| `BOT_SUPPORT_CHANNEL`    | Direct link to the bot's support channel          | `t.me/Falken_Devlog`                 |
+| `BOT_GITHUB_LINK`        | Direct link to the bot's repository link          | `github.com/Mostafa-Abbasi/HyperTAG` |
 
 </div>
 
